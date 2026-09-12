@@ -57,6 +57,47 @@ export const deleteProfileImage = createAsyncThunk(
   },
 );
 
+
+
+export const verifyCurrentPassword = createAsyncThunk(
+  "users/verifyPassword",
+  async (data: { password: string }, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.post("/auth/verify-password", data);
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(getErrorMessage(err, "كلمة المرور الحالية غير صحيحة"));
+    }
+  }
+);
+
+export const changeUserPassword = createAsyncThunk(
+  "users/changePassword",
+  async (data: { currentPassword: string; newPassword: string }, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.patch("/auth/change-password", data);
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(getErrorMessage(err, "فشل تغيير كلمة المرور"));
+    }
+  }
+);
+
+
+
+
+export const updateUserProfile = createAsyncThunk(
+  "users/updateUserProfile",
+  async (data: { username: string }, { rejectWithValue }) => {
+    try {
+      const res = await apiClient.patch("/users/profile", data);
+      return res.data;
+    } catch (err: any) {
+      return rejectWithValue(getErrorMessage(err, "فشل تحديث الاسم"));
+    }
+  }
+);
+
 const usersSlice = createSlice({
   name: "users",
   initialState,

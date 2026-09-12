@@ -11,7 +11,9 @@ async function bootstrap() {
   // تفعيل التحقق على مستوى التطبيق بالكامل
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true, // يتجاهل أي حقول إضافية غير موجودة في الـ DTO
-  }));
+    transform: true, // تحويل الأنواع تلقائياً (مثل تحويل query params)
+  },));
+
 
   await app.listen(3000);
   // await app.listen(process.env.PORT ?? 3000);

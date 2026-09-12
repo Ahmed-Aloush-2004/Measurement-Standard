@@ -14,7 +14,10 @@ export default function ScreenHeader({ title, subtitle, showBack = true }: Props
   const router = useRouter();
 
   return (
-    <SafeAreaView edges={["top"]} className="bg-[#2B2D5C]">
+    <SafeAreaView
+      edges={["top"]}
+      style={{ backgroundColor: "#2B2D5C" }}
+    >
       <View className="flex-row items-center px-4 py-4">
         {showBack && (
           <TouchableOpacity
@@ -22,13 +25,21 @@ export default function ScreenHeader({ title, subtitle, showBack = true }: Props
             hitSlop={10}
             className="px-1"
           >
-            <Feather name="arrow-right" size={20} color="white" />
+            <Feather name="arrow-right" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         )}
         <View className="flex-1">
-          <Text className="text-white font-black text-lg text-right">{title}</Text>
+          <Text
+            className="text-lg"
+            style={{ color: "#FFFFFF", fontWeight: "900", textAlign: "right" }}
+          >
+            {title}
+          </Text>
           {subtitle ? (
-            <Text className="text-indigo-200 text-xs font-semibold mt-1 text-right">
+            <Text
+              className="text-xs mt-1"
+              style={{ color: "#C7D2FE", fontWeight: "600", textAlign: "right" }}
+            >
               {subtitle}
             </Text>
           ) : null}

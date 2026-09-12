@@ -1,5 +1,5 @@
 // src/app/mistakes.tsx
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
 import { Stack } from "expo-router";
 import { Feather } from "@expo/vector-icons";
@@ -14,10 +14,15 @@ import { LoadingView, EmptyState, ErrorState } from "../components/StateViews";
 export default function MistakesScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const { mistakes, isLoadingMistakes, error } = useSelector(
+    
     (state: RootState) => state.userResponses,
   );
-  const favoriteIds = useSelector((state: RootState) =>
-    new Set(state.favorites.items.map((f) => f.question.id)),
+  const favoriteItems = useSelector(
+    (state: RootState) => state.favorites.items,
+  );
+  const favoriteIds = useMemo(
+    () => new Set(favoriteItems.map((f) => f.question.id)),
+    [favoriteItems],
   );
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
@@ -29,6 +34,13 @@ export default function MistakesScreen() {
     load();
   }, [load]);
 
+
+  console.log('mistake set : ', new Set(mistakes.map((mistake)=> mistake.id)).size);
+  console.log('------------------------------------------');
+  console.log('Mistakes state:', { mistakes: mistakes.length, set_mistake: [new Set(mistakes.map((mistake)=> mistake.id))].length });
+  console.log('------------------------------------------');  
+
+ 
   return (
     <View className="flex-1 bg-[#F8FAFC]">
       <Stack.Screen options={{ headerShown: false }} />

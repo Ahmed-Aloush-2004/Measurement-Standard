@@ -8,6 +8,7 @@ import userProgressReducer from './userProgressSlice';
 import testSessionsReducer from './testSessionsSlice';
 import usersReducer from './usersSlice';
 import sectionsReducer from './sectionsSlice';
+import quizQuestionsReducer from './questionsSlice';
 
 export const store = configureStore({
   reducer: {
@@ -19,6 +20,7 @@ export const store = configureStore({
     testSessions: testSessionsReducer,
     users: usersReducer,
     sections: sectionsReducer,
+    quizQuestions: quizQuestionsReducer,
   },
 });
 

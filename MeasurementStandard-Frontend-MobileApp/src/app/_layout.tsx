@@ -10,7 +10,7 @@ export default function RootLayout() {
   return (
     <Provider store={store}>
       <AuthGate>
-        <Stack />
+        <Stack screenOptions={{ headerShown: false }} />
       </AuthGate>
     </Provider>
   );

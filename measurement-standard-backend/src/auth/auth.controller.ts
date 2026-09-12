@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Req, UseGuards, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Body, Get, Req, UseGuards, UseInterceptors, UploadedFile, Patch } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { RegisterDto } from './dto/register.dto';
@@ -37,7 +37,31 @@ export class AuthController {
 
   @Post('login')
   login(@Body() body: LoginDto) {
+    
+      console.log('------------------------------------------');
+      console.log('Login DTO:', body);
+      console.log('------------------------------------------');
+
+
     return this.authService.login(body);
+  }
+
+
+
+  @Post('verify-password')
+  @UseGuards(AuthGuard('jwt')) // Or whatever strategy you use for protected routes
+  async verifyPassword(@Req() req, @Body('password') password: string) {
+    return this.authService.verifyCurrentPassword(req.user.userId, password); // sub is usually user.id
+  }
+
+  @Patch('change-password')
+  @UseGuards(AuthGuard('jwt'))
+  async changePassword(@Req() req, @Body() body: any) {
+    return this.authService.changeUserPassword(
+      req.user.userId, 
+      body.currentPassword, 
+      body.newPassword
+    );
   }
 
   @Post('google/verify')

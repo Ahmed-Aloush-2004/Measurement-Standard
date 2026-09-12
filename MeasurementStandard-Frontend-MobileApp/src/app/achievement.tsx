@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -11,6 +11,7 @@ import { LoadingView, EmptyState, ErrorState } from "../components/StateViews";
 
 export default function AchievementScreen() {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const { examTypes, isLoading, error } = useSelector(
     (state: RootState) => state.sections,
   );
@@ -51,6 +52,15 @@ export default function AchievementScreen() {
             <TouchableOpacity
               activeOpacity={0.85}
               className="bg-white rounded-2xl p-4 mb-3 border border-gray-100"
+              onPress={() =>
+                router.push({
+                  pathname: "/quiz",
+                  params: {
+                    examTypeId: item.id,
+                    title: item.name,
+                  },
+                })
+              }
             >
               <View className="flex-row items-center justify-between">
                 <View className="w-10 h-10 rounded-xl bg-orange-50 items-center justify-center">
@@ -61,6 +71,7 @@ export default function AchievementScreen() {
                     {item.name}
                   </Text>
                 </View>
+                <Feather name="chevron-left" size={18} color="#CBD5E1" />
               </View>
             </TouchableOpacity>
           )}

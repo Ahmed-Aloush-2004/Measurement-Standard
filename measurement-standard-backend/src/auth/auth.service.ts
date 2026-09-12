@@ -144,12 +144,47 @@ export class AuthService {
     const { email, password } = loginDto;
     const user = await this.usersRepository.findOne({ where: { email } });
     if (!user || !user.password_hash) throw new UnauthorizedException('بيانات الدخول غير صحيحة');
-
+    console.log('--------------------------------------------')
+    console.log('this user : ',user)
+    console.log('--------------------------------------------')
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) throw new UnauthorizedException('بيانات الدخول غير صحيحة');
 
     return this.generateTokens(user);
   }
+
+
+
+  // In auth.service.ts
+
+  async verifyCurrentPassword(userId: string, passwordToCheck: string) {
+    const user = await this.usersRepository.findOne({ where: { id: userId } });
+    if (!user || !user.password_hash) {
+      throw new UnauthorizedException('المستخدم غير موجود أو مسجل عبر Google فقط');
+    }
+
+    const isMatch = await bcrypt.compare(passwordToCheck, user.password_hash);
+    if (!isMatch) {
+      throw new UnauthorizedException('كلمة المرور الحالية غير صحيحة');
+    }
+
+    return { success: true };
+  }
+
+  async changeUserPassword(userId: string, currentPass: string, newPass: string) {
+    // 1. Verify old password again for security
+    await this.verifyCurrentPassword(userId, currentPass);
+
+    // 2. Hash and save new password
+    const newPasswordHash = await bcrypt.hash(newPass, 10);
+    await this.usersRepository.update(userId, { password_hash: newPasswordHash });
+
+    return { success: true, message: 'تم تغيير كلمة المرور بنجاح' };
+  }
+
+
+
+
 
   // الدالة الجديدة المخصصة لتسجيل الدخول من الموبايل
   async verifyGoogleToken(token: string) {

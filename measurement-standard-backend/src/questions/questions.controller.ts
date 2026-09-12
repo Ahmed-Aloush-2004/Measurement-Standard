@@ -1,7 +1,8 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
+import { QuestionFilterQueryDto } from './dto/question-filter.query.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { Role } from 'src/auth/enums/role.enum';
 import { Roles } from 'src/auth/decorators/roles.decorator';
@@ -25,11 +26,16 @@ export class QuestionsController {
     return this.questionsService.getDailyChallenge();
   }
 
+  // جلب الأسئلة مع فلاتر اختيارية (محمي بـ JWT لمنع كشف الإجابات)
+  @UseGuards(AuthGuard('jwt'))
   @Get()
-  findAll() {
-    return this.questionsService.findAll();
+  findAll(@Query() query: QuestionFilterQueryDto) {
+    console.log("this is  the query : ", query);
+    
+    return this.questionsService.findAllFiltered(query);
   }
 
+  // جلب سؤال واحد مع خياراته (بدون كشف الإجابة الصحيحة)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.questionsService.findOne(id);

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from "react";
 import { View, Text, FlatList, TouchableOpacity } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { Feather } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 
@@ -11,6 +11,7 @@ import { LoadingView, EmptyState, ErrorState } from "../components/StateViews";
 
 export default function VerbalScreen() {
   const dispatch = useDispatch<AppDispatch>();
+  const router = useRouter();
   const { sections, isLoading, error } = useSelector(
     (state: RootState) => state.sections,
   );
@@ -19,6 +20,7 @@ export default function VerbalScreen() {
     dispatch(fetchSections());
   }, [dispatch]);
 
+
   useEffect(() => {
     load();
   }, [load]);
@@ -26,6 +28,12 @@ export default function VerbalScreen() {
   const verbalSections = sections.filter((s) =>
     s.name?.toLowerCase().includes("لفظ") || s.name?.toLowerCase().includes("verbal"),
   );
+
+
+    console.log('--------------------------------------------')
+    console.log('this ,verbalSections[0] : ',verbalSections[0]?.questions.length)
+    console.log('--------------------------------------------')
+
 
   return (
     <View className="flex-1 bg-[#F8FAFC]">
@@ -51,6 +59,16 @@ export default function VerbalScreen() {
             <TouchableOpacity
               activeOpacity={0.85}
               className="bg-white rounded-2xl p-4 mb-3 border border-gray-100"
+              onPress={() =>
+                router.push({
+                  pathname: "/quiz",
+                  params: {
+                    examTypeId: item.examType?.id || "",
+                    sectionId: item.id,
+                    title: item.name,
+                  },
+                })
+              }
             >
               <View className="flex-row items-center justify-between">
                 <View className="w-10 h-10 rounded-xl bg-purple-50 items-center justify-center">
@@ -66,6 +84,7 @@ export default function VerbalScreen() {
                     </Text>
                   ) : null}
                 </View>
+                <Feather name="chevron-left" size={18} color="#CBD5E1" />
               </View>
             </TouchableOpacity>
           )}

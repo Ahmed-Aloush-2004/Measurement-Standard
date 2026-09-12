@@ -3,7 +3,13 @@ import { apiClient } from "../api/client";
 
 interface FavoriteItem {
   id: string;
-  question: { id: string; content: string; choices?: any[]; section?: any };
+  question: {
+    id: string;
+    content: string;
+    explanation?: string;
+    choices?: any[];
+    section?: any;
+  };
 }
 
 interface State {

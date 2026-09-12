@@ -5,6 +5,7 @@ export interface Section {
   id: string;
   name: string;
   description?: string;
+  examType?: { id: string; name: string } | null;
 }
 
 export interface ExamType {

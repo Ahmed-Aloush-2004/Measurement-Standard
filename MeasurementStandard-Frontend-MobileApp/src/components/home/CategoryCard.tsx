@@ -34,7 +34,7 @@ export default function CategoryCard({
       }}
     >
       {/* Icon */}
-      <View className="h-[38px] items-center justify-center">
+      <View  className="h-[38px] items-center justify-center">
         {icon}
       </View>
 

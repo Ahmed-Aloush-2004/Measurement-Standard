@@ -76,6 +76,24 @@ export class UsersService {
 
   }
 
+
+
+  async updateUserProfile(userId: string, newUsername: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('المستخدم غير موجود');
+    }
+
+    user.username = newUsername;
+    await this.userRepository.save(user);
+
+    return { 
+      success: true, 
+      username: user.username,
+      message: 'تم تحديث الملف الشخصي بنجاح' 
+    };
+  }
+
   // يمكن الإبقاء على باقي الدوال إذا احتجتها للوحة تحكم الإدارة (Admin Panel)
   async findAll() {
     return await this.userRepository.find({

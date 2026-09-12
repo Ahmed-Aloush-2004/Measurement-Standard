@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Param, Delete, Req, UseGuards, UseInterceptors, UploadedFile, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Patch, Param, Delete, Req, UseGuards, UseInterceptors, UploadedFile, BadRequestException, Body } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -27,6 +27,13 @@ export class UsersController {
     
     const uploadResult = await this.cloudinaryService.uploadFile(file);
     return this.usersService.updateProfileImage(req.user.userId, uploadResult.secure_url);
+  }
+
+  @Patch('profile')
+  @UseGuards(AuthGuard('jwt'))
+  async updateProfile(@Req() req, @Body('username') username: string) {
+    // req.user.sub is the user ID provided by your JWT payload
+    return this.usersService.updateUserProfile(req.user.userId, username);
   }
 
 
