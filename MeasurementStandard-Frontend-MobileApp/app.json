@@ -8,9 +8,11 @@
     "scheme": "measurementstandardfrontendmobileapp",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.measurementstandard.mobileapp"
     },
     "android": {
+      "package": "com.measurementstandard.mobileapp",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
