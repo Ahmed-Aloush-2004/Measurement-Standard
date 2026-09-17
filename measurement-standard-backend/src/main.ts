@@ -2,21 +2,23 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import  express from 'express'
-
-
+import express from 'express';
 
 const server = express();
 
-// Add JSON & URL-encoded body parsing middleware for Express serverless
 server.use(express.json());
 server.use(express.urlencoded({ extended: true }));
 
 async function createServer() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
-  // Enable CORS so your React dashboard & React Native app can call the API
   app.enableCors();
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
 
   await app.init();
   return server;
@@ -30,11 +32,12 @@ if (process.env.NODE_ENV !== 'production') {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.enableCors();
-
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true, // يتجاهل أي حقول إضافية غير موجودة في الـ DTO
-    transform: true, // تحويل الأنواع تلقائياً (مثل تحويل query params)
-  },));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
 
   await app.listen(process.env.PORT || 3000);
 }
