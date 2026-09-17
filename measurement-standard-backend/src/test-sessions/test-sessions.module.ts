@@ -6,10 +6,12 @@ import { TestSession } from './entities/test-session.entity';
 import { Question } from '../questions/entities/question.entity';
 import { UserResponse } from '../user-responses/entities/user-response.entity';
 import { UserProgress } from '../user-progress/entities/user-progress.entity';
+import { NotificationsModule } from 'src/notifications/notifications.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([TestSession, Question, UserResponse, UserProgress]),
+    NotificationsModule,
   ],
   controllers: [TestSessionsController],
   providers: [TestSessionsService],

@@ -19,19 +19,20 @@ export class QuestionsController {
     return this.questionsService.create(createQuestionDto);
   }
 
-  // نقطة النهاية الخاصة بالتحدي اليومي (توضع قبل :id)
-  @UseGuards(AuthGuard('jwt'))
-  @Get('daily-challenge')
-  getDailyChallenge() {
-    return this.questionsService.getDailyChallenge();
-  }
+  // // نقطة النهاية الخاصة بالتحدي اليومي (توضع قبل :id)
+  // @UseGuards(AuthGuard('jwt'))
+  // @Get('daily-challenge')
+  // getDailyChallenge() {
+  //   return this.questionsService.getDailyChallenge();
+  // }
+
+
+
 
   // جلب الأسئلة مع فلاتر اختيارية (محمي بـ JWT لمنع كشف الإجابات)
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  findAll(@Query() query: QuestionFilterQueryDto) {
-    console.log("this is  the query : ", query);
-    
+  findAll(@Query() query: QuestionFilterQueryDto) {      
     return this.questionsService.findAllFiltered(query);
   }
 

@@ -1,4 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from 'typeorm';
+
+import {
+  Entity,
+  PrimaryGeneratedColumn,
+  Column,
+  ManyToOne,
+  OneToMany,
+  JoinColumn,
+} from 'typeorm';
+
 import { ExamType } from '../../exam-types/entities/exam-type.entity';
 import { Question } from '../../questions/entities/question.entity';
 
@@ -10,10 +19,20 @@ export class Section {
   @Column()
   name!: string;
 
-  @ManyToOne(() => ExamType, (examType) => examType.sections, { onDelete: 'CASCADE' })
+  @ManyToOne(
+    () => ExamType,
+    (examType) => examType.sections,
+    {
+      nullable: false,
+      onDelete: 'CASCADE',
+    },
+  )
   @JoinColumn({ name: 'exam_type_id' })
   examType!: ExamType;
 
-  @OneToMany(() => Question, (question) => question.section)
+  @OneToMany(
+    () => Question,
+    (question) => question.section,
+  )
   questions!: Question[];
 }

@@ -1,11 +1,12 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Not, In, Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import UserProfile from './interfaces/user-profile.interface';
 import { CloudinaryService } from './cloudinary.service';
+import { Role } from 'src/auth/enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +25,7 @@ export class UsersService {
         email: true,
         created_at: true,
         profile_picture: true,
+        role: true
         // password_hash غير مدرجة هنا، فسيتم استبعادها تلقائياً
       },
     });
@@ -87,34 +89,98 @@ export class UsersService {
     user.username = newUsername;
     await this.userRepository.save(user);
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       username: user.username,
-      message: 'تم تحديث الملف الشخصي بنجاح' 
+      message: 'تم تحديث الملف الشخصي بنجاح'
     };
   }
 
-  // يمكن الإبقاء على باقي الدوال إذا احتجتها للوحة تحكم الإدارة (Admin Panel)
+
+
+  async updateUserRole(userId: string, newRole: Role) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('المستخدم غير موجود');
+
+    user.role = newRole;
+    await this.userRepository.save(user);
+
+    return {
+      success: true,
+      message: 'تم تغيير صلاحية المستخدم بنجاح',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        role: user.role,
+      },
+    };
+  }
+
   async findAll() {
     return await this.userRepository.find({
+      where: {
+        role: Not(Role.SUPER_ADMIN),
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        created_at: true,
+        profile_picture: true,
+      },
+    });
+  }
+
+  async getUsersbyRoles(roles: [Role]) {
+    return await this.userRepository.find({
+      where: {
+        role: In(roles),
+      },
+      select: {
+        id: true,
+        username: true,
+        email: true,
+        role: true,
+        created_at: true,
+        profile_picture: true,
+      },
+    });
+  }
+
+  async findOne(id: string) {
+    return this.findByQuery({ id: id });
+  }
+
+
+
+  async findByQuery(
+    query: Object
+  ) {
+    const user = this.userRepository.findOne({
+      where: query,
       select: {
         id: true,
         username: true,
         email: true,
         created_at: true,
         profile_picture: true,
-        // password_hash غير مدرجة هنا، فسيتم استبعادها تلقائياً
-      },
-    });
+        role: true
+      }
+    })
+
+    if (!user){
+      throw new NotFoundException('المستخدم غير موجود');
+    } 
+
+    return user;
   }
 
-  async findOne(id: string) {
-    return this.getProfile(id);
-  }
 
   async remove(id: string) {
-    const user = await this.getProfile(id);
-    await this.userRepository.remove({ id: user.id } as User);
+    const user = await this.findByQuery({ id: id });
+    await this.userRepository.delete({id:user?.id});
     return { message: 'تم حذف المستخدم بنجاح' };
   }
 }

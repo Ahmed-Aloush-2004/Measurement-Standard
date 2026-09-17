@@ -6,7 +6,6 @@ export class CreateSectionDto {
   @IsNotEmpty()
   name!: string;
 
-  // تغيير من IsInt إلى IsUUID
   @IsUUID('all', { message: 'يجب أن يكون معرف نوع الاختبار بصيغة UUID' })
   @IsNotEmpty()
   examTypeId!: string;

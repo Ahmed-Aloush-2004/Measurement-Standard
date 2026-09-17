@@ -1,0 +1,22 @@
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { RolesGuard } from '../auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { AnalyticsService } from './analytics.service';
+import { Role } from 'src/auth/enums/role.enum';
+import { AuthGuard } from '@nestjs/passport';
+
+@Controller('analytics')
+@UseGuards(AuthGuard('jwt'), RolesGuard)
+export class AnalyticsController {
+  constructor(
+    private readonly analyticsServicetsts:AnalyticsService
+  ) {}
+
+  @Get('dashboard')
+  @Roles(Role.ADMIN,Role.SUPER_ADMIN)
+  async getDashboardStats() {
+    return this.analyticsServicetsts.getDashboardStats()
+  }
+}

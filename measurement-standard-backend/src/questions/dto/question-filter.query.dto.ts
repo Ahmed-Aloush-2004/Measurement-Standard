@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsBoolean, IsInt, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsUUID, Max, Min } from 'class-validator';
 
 export class QuestionFilterQueryDto {
   @IsOptional()
@@ -14,11 +14,18 @@ export class QuestionFilterQueryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  @Max(200)
-  limit?: number;
+  @Max(30)
+  limit?: number = 30;
+
 
   @IsOptional()
-  @Type(() => Boolean)
-  @IsBoolean({ message: 'random يجب أن تكون قيمة منطقية' })
-  random?: boolean;
+  @Type(() => Number)
+  @IsInt()
+  page?: number  = 1;
+
+
+  @IsEnum({DESC:'DESC',ASC:'ASC'})
+  @IsNotEmpty()
+  order?: string = 'ASC';
+
 }

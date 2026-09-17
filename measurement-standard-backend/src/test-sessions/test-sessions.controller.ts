@@ -11,7 +11,7 @@ export class TestSessionsController {
   @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Req() req: any, @Body() createTestSessionDto: CreateTestSessionDto) {
-    return this.testSessionsService.create(req.user.userId, createTestSessionDto);
+    return this.testSessionsService.create(req.user.userId,req.user.email, createTestSessionDto);
   }
 
 

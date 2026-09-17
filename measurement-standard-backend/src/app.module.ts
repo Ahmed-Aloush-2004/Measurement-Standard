@@ -25,6 +25,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { FavoritesModule } from './favorites/favorites.module';
 import { TestSessionsModule } from './test-sessions/test-sessions.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AnalyticsModule } from './analytics/analytics.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 
 @Module({
@@ -34,19 +36,34 @@ import { NotificationsModule } from './notifications/notifications.module';
       isGlobal: true,
     }),
     
-    // الاتصال بقاعدة البيانات باستخدام ConfigService
+    // // الاتصال بقاعدة البيانات باستخدام ConfigService
+    // TypeOrmModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   inject: [ConfigService],
+    //   useFactory: (configService: ConfigService) => ({
+    //     type: 'postgres',
+    //     host: configService.get<string>('DB_HOST'),
+    //     port: configService.get<number>('DB_PORT'),
+    //     username: configService.get<string>('DB_USER'),
+    //     password: configService.get<string>('DB_PASSWORD'),
+    //     database: configService.get<string>('DB_NAME'),
+    //     autoLoadEntities: true, // يقوم بتحميل الجداول تلقائياً دون الحاجة لكتابتها يدوياً
+    //     synchronize: true, 
+    //   }),
+    // }),
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DB_HOST'),
-        port: configService.get<number>('DB_PORT'),
-        username: configService.get<string>('DB_USER'),
-        password: configService.get<string>('DB_PASSWORD'),
-        database: configService.get<string>('DB_NAME'),
-        autoLoadEntities: true, // يقوم بتحميل الجداول تلقائياً دون الحاجة لكتابتها يدوياً
-        synchronize: true, 
+        url: configService.get<string>('DATABASE_URL'),
+        schema: 'public', // Force TypeORM to create tables in the public schema
+        ssl: {
+          rejectUnauthorized: false, // Required for Neon SSL connections
+        },
+        autoLoadEntities: true,
+        synchronize: true, // Keep true for development; set to false in production
       }),
     }),
     UsersModule, 
@@ -59,7 +76,9 @@ import { NotificationsModule } from './notifications/notifications.module';
     AuthModule, 
     FavoritesModule, 
     TestSessionsModule, 
-    NotificationsModule
+    NotificationsModule,
+    AnalyticsModule,
+    ScheduleModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],

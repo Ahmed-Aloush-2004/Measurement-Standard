@@ -20,10 +20,6 @@ export class AuthController {
       @UploadedFile() file: Express.Multer.File
     ) {
 
-      console.log('------------------------------------------');
-      console.log('Register DTO:', registerDto);
-      console.log('------------------------------------------');
-
       let imageUrl = null;
       
       // إذا قام المستخدم برفع صورة أثناء التسجيل، ارفعها إلى Cloudinary
@@ -37,11 +33,6 @@ export class AuthController {
 
   @Post('login')
   login(@Body() body: LoginDto) {
-    
-      console.log('------------------------------------------');
-      console.log('Login DTO:', body);
-      console.log('------------------------------------------');
-
 
     return this.authService.login(body);
   }

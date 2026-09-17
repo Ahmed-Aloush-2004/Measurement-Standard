@@ -37,4 +37,8 @@ export class UserResponse {
 
   @CreateDateColumn()
   answered_at!: Date;
+
+
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt!: Date;
 }

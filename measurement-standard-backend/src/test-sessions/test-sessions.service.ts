@@ -163,6 +163,8 @@ import { Choice } from '../choices/entities/choice.entity';
 
 import { UserResponse } from '../user-responses/entities/user-response.entity';
 import { UserProgress } from '../user-progress/entities/user-progress.entity';
+import { NotificationsGateway } from 'src/notifications/notifications.gateway';
+import { NotificationsService } from 'src/notifications/notifications.service';
 
 @Injectable()
 export class TestSessionsService {
@@ -174,6 +176,8 @@ export class TestSessionsService {
     private readonly questionRepository: Repository<Question>,
 
     private readonly dataSource: DataSource,
+
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // ============================================================
@@ -182,11 +186,20 @@ export class TestSessionsService {
 
   async create(
     userId: string,
+    email:string,
     createDto: CreateTestSessionDto,
   ) {
     // ----------------------------------------------------------
     // 1. Get all questions for this exam type
     // ----------------------------------------------------------
+
+
+
+
+
+
+
+
 
     const questions = await this.questionRepository.find({
       where: {
@@ -587,6 +600,22 @@ export class TestSessionsService {
         return savedSession;
       },
     );
+
+
+
+    await this.notificationsService.create(
+      {
+          user_email:email,
+          title: 'تم إنهاء الاختبار',
+          message: 'تم حفظ نتيجة اختبارك بنجاح', 
+          type: 'TEST_RESULT',
+          url: `/test/results/${session.id}`,
+          data: {
+            testSessionId: session.id,
+          },
+        },
+      );
+
 
     // ==========================================================
     // 11. Get saved session with exam type

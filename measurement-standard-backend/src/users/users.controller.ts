@@ -4,6 +4,9 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
 import UserProfile from './interfaces/user-profile.interface';
+import { Roles } from 'src/auth/decorators/roles.decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { UpdateRoleDto } from './dto/update-role.dto';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('users')
@@ -23,9 +26,15 @@ export class UsersController {
   @Patch('profile/image')
   @UseInterceptors(FileInterceptor('profile_picture'))
   async updateImage(@Req() req: any, @UploadedFile() file: Express.Multer.File):Promise<UserProfile> {
+
+    console.warn('this is the result of (!file) : ',(!file))
+
     if (!file) throw new BadRequestException('لم يتم إرفاق أي صورة');
     
     const uploadResult = await this.cloudinaryService.uploadFile(file);
+    console.warn('this is the result of uploading from cloudinary : ',uploadResult)
+
+
     return this.usersService.updateProfileImage(req.user.userId, uploadResult.secure_url);
   }
 
@@ -44,19 +53,41 @@ export class UsersController {
   
 
 
-
+  @Roles(Role.SUPER_ADMIN)
   @Get()
   findAll() {
     return this.usersService.findAll();
   }
 
+
+  @Roles(Role.SUPER_ADMIN)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
+  @Roles(Role.SUPER_ADMIN)
+  @Get('get-user-by-db-query')
+  findOneByDBQuery(
+    query:Object
+  ) {
+    return this.usersService.findByQuery(query);
+  }
+
+  
+
+  // Change user role (SUPER ADMIN ONLY)
+  @Roles(Role.SUPER_ADMIN)
+  @Patch(':id/role')
+  updateRole(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
+    return this.usersService.updateUserRole(id, updateRoleDto.role);
+  }
+
+  // Delete user account (SUPER ADMIN ONLY)
+  @Roles(Role.SUPER_ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
+
 }

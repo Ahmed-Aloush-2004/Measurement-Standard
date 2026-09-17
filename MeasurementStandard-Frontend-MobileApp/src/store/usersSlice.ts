@@ -36,6 +36,7 @@ export const updateProfileImage = createAsyncThunk(
     try {
       const formData = new FormData();
       formData.append("profile_picture", image as any);
+      
       // لا نضع Content-Type يدوياً هنا (يضبطه الـ interceptor تلقائياً)
       const res = await apiClient.patch("/users/profile/image", formData);
       return res.data;
