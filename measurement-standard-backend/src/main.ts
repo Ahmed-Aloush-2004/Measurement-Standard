@@ -8,6 +8,10 @@ import  express from 'express'
 
 const server = express();
 
+// Add JSON & URL-encoded body parsing middleware for Express serverless
+server.use(express.json());
+server.use(express.urlencoded({ extended: true }));
+
 async function createServer() {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
 
