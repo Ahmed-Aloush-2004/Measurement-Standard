@@ -1,64 +1,68 @@
-import { Injectable } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { ExamType } from "src/exam-types/entities/exam-type.entity";
-import { Question } from "src/questions/entities/question.entity";
-import { Section } from "src/sections/entities/section.entity";
-import { User } from "src/users/entities/user.entity";
-import { Repository } from "typeorm";
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'src/prisma/prisma.service';
 
+interface MonthlyCountRow {
+  monthDate: Date;
+  count: bigint;
+}
+
+type CountableDelegate = {
+  count: (args?: {
+    where?: { created_at?: { gte?: Date; lt?: Date } };
+  }) => Promise<number>;
+};
 
 @Injectable()
 export class AnalyticsService {
-    constructor(
-        @InjectRepository(User) private userRepo: Repository<User>,
-        @InjectRepository(ExamType) private examTypeRepo: Repository<ExamType>,
-        @InjectRepository(Section) private sectionRepo: Repository<Section>,
-        @InjectRepository(Question) private questionRepo: Repository<Question>,
-    ) { }
-
-
-
+  constructor(private readonly prisma: PrismaService) {}
 
   async getDashboardStats() {
     // 1. Total counts across entities
-    const totalUsers = await this.userRepo.count();
-    const totalExamTypes = await this.examTypeRepo.count();
-    const totalQuestions = await this.questionRepo.count();
+    const totalUsers = await this.prisma.user.count();
+    const totalExamTypes = await this.prisma.examType.count();
+    const totalQuestions = await this.prisma.question.count();
 
-    // 2. Real question count per exam type using QueryBuilder
-    const questionsPerExamTypeRaw = await this.examTypeRepo
-      .createQueryBuilder('examType')
-      .leftJoin('examType.sections', 'section')
-      .leftJoin('section.questions', 'question')
-      .select('examType.name', 'name')
-      .addSelect('COUNT(question.id)', 'questionsCount')
-      .groupBy('examType.id')
-      .getRawMany();
+    // 2. Real question count per exam type
+    const examTypes = await this.prisma.examType.findMany({
+      include: {
+        sections: {
+          include: {
+            questions: true,
+          },
+        },
+      },
+    });
 
-    const questionsPerExamType = questionsPerExamTypeRaw.map((row) => ({
-      name: row.name,
-      questionsCount: parseInt(row.questionsCount, 10) || 0,
+    const questionsPerExamType = examTypes.map((et) => ({
+      name: et.name,
+      questionsCount: et.sections.reduce(
+        (sum, sec) => sum + sec.questions.length,
+        0,
+      ),
     }));
 
     // 3. Real monthly user growth for the past 6 months from DB
     const now = new Date();
     const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
 
-    const rawMonthlyUsers = await this.userRepo
-    .createQueryBuilder('user')
-    .select(`DATE_TRUNC('month', "user"."created_at")`, 'monthDate')
-    .addSelect('COUNT("user"."id")', 'count')
-    .where('"user"."created_at" >= :startDate', { startDate: sixMonthsAgo })
-    .groupBy('"monthDate"')
-    .orderBy('"monthDate"', 'ASC')
-    .getRawMany();
+    const rawMonthlyUsers = await this.prisma.$queryRaw<MonthlyCountRow[]>`
+      SELECT DATE_TRUNC('month', "created_at") AS "monthDate", COUNT(id) AS count
+      FROM "users"
+      WHERE "created_at" >= ${sixMonthsAgo}
+      GROUP BY "monthDate"
+      ORDER BY "monthDate" ASC
+    `;
 
     // Map database results into a structured 6-month continuous timeline
     const userGrowth = this.buildMonthlyTimeline(rawMonthlyUsers, 6);
 
     // 4. Real Month-over-Month (MoM) Growth Percentages
-    const userGrowthPercentage = await this.calculateMoMGrowth(this.userRepo);
-    const questionGrowthPercentage = await this.calculateMoMGrowth(this.questionRepo);
+    const userGrowthPercentage = await this.calculateMoMGrowth(
+      this.prisma.user,
+    );
+    const questionGrowthPercentage = await this.calculateMoMGrowth(
+      this.prisma.question,
+    );
 
     return {
       summary: {
@@ -76,10 +80,23 @@ export class AnalyticsService {
   /**
    * Generates a continuous N-month array in Arabic with actual user counts.
    */
-  private buildMonthlyTimeline(rawMonthlyData: any[], monthsCount: number) {
+  private buildMonthlyTimeline(
+    rawMonthlyData: MonthlyCountRow[],
+    monthsCount: number,
+  ) {
     const monthsArabic = [
-      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
-      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
+      'يناير',
+      'فبراير',
+      'مارس',
+      'أبريل',
+      'مايو',
+      'يونيو',
+      'يوليو',
+      'أغسطس',
+      'سبتمبر',
+      'أكتوبر',
+      'نوفمبر',
+      'ديسمبر',
     ];
 
     const result: Array<{ month: string; users: number }> = [];
@@ -90,7 +107,7 @@ export class AnalyticsService {
     rawMonthlyData.forEach((row) => {
       const date = new Date(row.monthDate);
       const key = `${date.getFullYear()}-${date.getMonth()}`;
-      countsByMonthKey.set(key, parseInt(row.count, 10) || 0);
+      countsByMonthKey.set(key, Number(row.count) || 0);
     });
 
     let runningTotal = 0;
@@ -115,108 +132,28 @@ export class AnalyticsService {
   /**
    * Calculates real Month-over-Month growth percentage comparing current vs previous month.
    */
+  private async calculateMoMGrowth(repo: CountableDelegate): Promise<string> {
+    const now = new Date();
+    const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 
+    const currentMonthCount = await repo.count({
+      where: { created_at: { gte: startOfCurrentMonth } },
+    });
 
+    const lastMonthCount = await repo.count({
+      where: {
+        created_at: { gte: startOfLastMonth, lt: startOfCurrentMonth },
+      },
+    });
 
-private async calculateMoMGrowth(repo: Repository<any>): Promise<string> {
-  const now = new Date();
-  const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-  const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    if (lastMonthCount === 0) {
+      return currentMonthCount > 0 ? '+100%' : '0%';
+    }
 
-  const currentMonthCount = await repo
-    .createQueryBuilder('entity')
-    .where('entity.created_at >= :start', { start: startOfCurrentMonth })
-    .getCount();
-
-  const lastMonthCount = await repo
-    .createQueryBuilder('entity')
-    .where('entity.created_at >= :start AND entity.created_at < :end', {
-      start: startOfLastMonth,
-      end: startOfCurrentMonth,
-    })
-    .getCount();
-
-  if (lastMonthCount === 0) {
-    return currentMonthCount > 0 ? '+100%' : '0%';
+    const percentage =
+      ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100;
+    const sign = percentage >= 0 ? '+' : '';
+    return `${sign}${percentage.toFixed(1)}%`;
   }
-
-  const percentage = ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100;
-  const sign = percentage >= 0 ? '+' : '';
-  return `${sign}${percentage.toFixed(1)}%`;
 }
-
-}
-
-
-
-
-// async getDashboardStats() {
-//     const totalUsers = await this.userRepo.count();
-//     const totalExamTypes = await this.examTypeRepo.count();
-//     const totalQuestions = await this.questionRepo.count();
-
-//     // Fetch question breakdown per exam type
-//     const examTypes = await this.examTypeRepo.find({
-//         relations: {
-//             sections: {
-//             questions: true,
-//             },
-//         },
-//         });
-//       const questionsPerExamType = examTypes.map((et) => {
-//       const qCount = et.sections?.reduce((sum, sec) => sum + (sec.questions?.length || 0), 0) || 0;
-//       return { name: et.name, questionsCount: qCount };
-//     });
-
-//     // Mock 6-month growth sample data (connect to DB created_at fields for production)
-//     const userGrowth = [
-//       { month: 'أبريل', users: Math.round(totalUsers * 0.4) },
-//       { month: 'مايو', users: Math.round(totalUsers * 0.55) },
-//       { month: 'يونيو', users: Math.round(totalUsers * 0.7) },
-//       { month: 'يوليو', users: Math.round(totalUsers * 0.85) },
-//       { month: 'أغسطس', users: Math.round(totalUsers * 0.95) },
-//       { month: 'سبتمبر', users: totalUsers },
-//     ];
-
-//     return {
-//       summary: {
-//         totalUsers,
-//         totalExamTypes,
-//         totalQuestions,
-//         userGrowthPercentage: '+14.5%',
-//         questionGrowthPercentage: '+8.2%',
-//       },
-//       questionsPerExamType,
-//       userGrowth,
-//     };
-//   }
-
-
-
-
-//   private async calculateMoMGrowth(repo: Repository<any>): Promise<string> {
-//     const now = new Date();
-//     const startOfCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-//     const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-
-//     const currentMonthCount = await repo
-//       .createQueryBuilder('entity')
-//       .where('entity.createdAt >= :start', { start: startOfCurrentMonth })
-//       .getCount();
-
-//     const lastMonthCount = await repo
-//       .createQueryBuilder('entity')
-//       .where('entity.createdAt >= :start AND entity.createdAt < :end', {
-//         start: startOfLastMonth,
-//         end: startOfCurrentMonth,
-//       })
-//       .getCount();
-
-//     if (lastMonthCount === 0) {
-//       return currentMonthCount > 0 ? '+100%' : '0%';
-//     }
-
-//     const percentage = ((currentMonthCount - lastMonthCount) / lastMonthCount) * 100;
-//     const sign = percentage >= 0 ? '+' : '';
-//     return `${sign}${percentage.toFixed(1)}%`;
-//   }

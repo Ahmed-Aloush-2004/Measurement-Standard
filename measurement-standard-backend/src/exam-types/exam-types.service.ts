@@ -1,27 +1,15 @@
-
-
-import {
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
-
-import { InjectRepository } from '@nestjs/typeorm';
-
-import { Repository } from 'typeorm';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { CreateExamTypeDto } from './dto/create-exam-type.dto';
 import { UpdateExamTypeDto } from './dto/update-exam-type.dto';
 
-import { ExamType } from './entities/exam-type.entity';
-
 import { NotificationsService } from 'src/notifications/notifications.service';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class ExamTypesService {
   constructor(
-    @InjectRepository(ExamType)
-    private readonly examTypeRepository: Repository<ExamType>,
-
+    private readonly prisma: PrismaService,
     private readonly notificationsService: NotificationsService,
   ) {}
 
@@ -29,15 +17,12 @@ export class ExamTypesService {
   // CREATE
   // ============================================================
 
-  async create(
-    createExamTypeDto: CreateExamTypeDto,
-  ) {
-    const existing =
-      await this.examTypeRepository.findOne({
-        where: {
-          code: createExamTypeDto.code,
-        },
-      });
+  async create(createExamTypeDto: CreateExamTypeDto) {
+    const existing = await this.prisma.examType.findUnique({
+      where: {
+        code: createExamTypeDto.code,
+      },
+    });
 
     if (existing) {
       throw new Error(
@@ -45,38 +30,24 @@ export class ExamTypesService {
       );
     }
 
-    const examType =
-      this.examTypeRepository.create(
-        createExamTypeDto,
-      );
-
-    // IMPORTANT:
-    // Save first so PostgreSQL generates the UUID.
-    const savedExamType =
-      await this.examTypeRepository.save(
-        examType,
-      );
+    const savedExamType = await this.prisma.examType.create({
+      data: createExamTypeDto,
+    });
 
     // Now the ID exists.
     await this.notificationsService.create({
       title: 'نوع اختبار جديد',
-
       message: `تمت إضافة نوع اختبار جديد: ${savedExamType.name}`,
-
       type: 'NEW_EXAM_TYPE',
-
       url: `/exam-type/${savedExamType.id}`,
-
       data: {
-        examTypeId:savedExamType.id,
-        title:examType.name,
-        code:savedExamType.code,
+        examTypeId: savedExamType.id,
+        title: createExamTypeDto.name,
+        code: savedExamType.code,
       },
     });
 
-    return await this.findOne(
-      savedExamType.id,
-    );
+    return await this.findOne(savedExamType.id);
   }
 
   // ============================================================
@@ -84,13 +55,12 @@ export class ExamTypesService {
   // ============================================================
 
   async findAll() {
-    return await this.examTypeRepository.find({
-      relations: {
+    return await this.prisma.examType.findMany({
+      include: {
         sections: true,
       },
-
-      order: {
-        name: 'ASC',
+      orderBy: {
+        name: 'asc',
       },
     });
   }
@@ -100,21 +70,15 @@ export class ExamTypesService {
   // ============================================================
 
   async findOne(id: string) {
-    const examType =
-      await this.examTypeRepository.findOne({
-        where: {
-          id,
-        },
-
-        relations: {
-          sections: true,
-        },
-      });
+    const examType = await this.prisma.examType.findUnique({
+      where: { id },
+      include: {
+        sections: true,
+      },
+    });
 
     if (!examType) {
-      throw new NotFoundException(
-        `نوع الاختبار برقم ${id} غير موجود`,
-      );
+      throw new NotFoundException(`نوع الاختبار برقم ${id} غير موجود`);
     }
 
     return examType;
@@ -124,44 +88,25 @@ export class ExamTypesService {
   // UPDATE
   // ============================================================
 
-  async update(
-    id: string,
-    updateExamTypeDto: UpdateExamTypeDto,
-  ) {
-    const examType =
-      await this.findOne(id);
+  async update(id: string, updateExamTypeDto: UpdateExamTypeDto) {
+    const examType = await this.findOne(id);
 
-    if (
-      updateExamTypeDto.code &&
-      updateExamTypeDto.code !==
-        examType.code
-    ) {
-      const existing =
-        await this.examTypeRepository.findOne({
-          where: {
-            code:
-              updateExamTypeDto.code,
-          },
-        });
+    if (updateExamTypeDto.code && updateExamTypeDto.code !== examType.code) {
+      const existing = await this.prisma.examType.findUnique({
+        where: {
+          code: updateExamTypeDto.code,
+        },
+      });
 
-      if (
-        existing &&
-        existing.id !== id
-      ) {
-        throw new Error(
-          `رمز الاختبار ${updateExamTypeDto.code} مستخدم مسبقاً`,
-        );
+      if (existing && existing.id !== id) {
+        throw new Error(`رمز الاختبار ${updateExamTypeDto.code} مستخدم مسبقاً`);
       }
     }
 
-    Object.assign(
-      examType,
-      updateExamTypeDto,
-    );
-
-    return await this.examTypeRepository.save(
-      examType,
-    );
+    return await this.prisma.examType.update({
+      where: { id },
+      data: updateExamTypeDto,
+    });
   }
 
   // ============================================================
@@ -169,17 +114,13 @@ export class ExamTypesService {
   // ============================================================
 
   async remove(id: string) {
-    const examType =
-      await this.findOne(id);
+    await this.findOne(id);
 
-    await this.examTypeRepository.remove(
-      examType,
-    );
+    await this.prisma.examType.delete({ where: { id } });
 
     return {
       success: true,
-      message:
-        'تم حذف نوع الاختبار بنجاح',
+      message: 'تم حذف نوع الاختبار بنجاح',
     };
   }
 }

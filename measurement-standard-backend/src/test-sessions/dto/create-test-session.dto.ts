@@ -1,5 +1,11 @@
 import { Type } from 'class-transformer';
-import { ArrayMinSize, IsArray, IsNotEmpty, IsUUID, ValidateNested } from 'class-validator';
+import {
+  ArrayMinSize,
+  IsArray,
+  IsNotEmpty,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
 
 export class TestAnswerDto {
   @IsUUID('all', { message: 'معرف السؤال يجب أن يكون بصيغة UUID' })

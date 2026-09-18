@@ -11,22 +11,20 @@ export class CloudinaryService {
       api_key: this.configService.get<string>('CLOUDINARY_API_KEY'),
       api_secret: this.configService.get<string>('CLOUDINARY_API_SECRET'),
     });
-  } 
+  }
 
   uploadFile(file: Express.Multer.File): Promise<any> {
-    
     return new Promise((resolve, reject) => {
       const uploadStream = cloudinary.uploader.upload_stream(
         { folder: 'qiyas app' }, // اسم المجلد في Cloudinary
         (error, result) => {
           if (error) return reject(error);
-          resolve(result); 
+          resolve(result);
         },
       );
       streamifier.createReadStream(file.buffer).pipe(uploadStream);
     });
   }
-
 
   // الدالة الجديدة لحذف الصورة
   deleteFile(publicId: string): Promise<any> {
@@ -37,6 +35,4 @@ export class CloudinaryService {
       });
     });
   }
-
-  
 }

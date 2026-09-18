@@ -1,5 +1,14 @@
 import { Type } from 'class-transformer';
-import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsOptional, IsUUID, Max, Min } from 'class-validator';
+import {
+  IsBoolean,
+  IsEnum,
+  IsInt,
+  IsNotEmpty,
+  IsOptional,
+  IsUUID,
+  Max,
+  Min,
+} from 'class-validator';
 
 export class QuestionFilterQueryDto {
   @IsOptional()
@@ -17,15 +26,12 @@ export class QuestionFilterQueryDto {
   @Max(30)
   limit?: number = 30;
 
-
   @IsOptional()
   @Type(() => Number)
   @IsInt()
-  page?: number  = 1;
+  page?: number = 1;
 
-
-  @IsEnum({DESC:'DESC',ASC:'ASC'})
+  @IsEnum({ DESC: 'DESC', ASC: 'ASC' })
   @IsNotEmpty()
   order?: string = 'ASC';
-
 }

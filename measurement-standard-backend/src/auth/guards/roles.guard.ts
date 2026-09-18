@@ -1,4 +1,9 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '../enums/role.enum';
 import { ROLES_KEY } from '../decorators/roles.decorator';
@@ -12,7 +17,7 @@ export class RolesGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
-    
+
     // إذا لم يتم تحديد أدوار معينة للمسار، اسمح بالوصول
     if (!requiredRoles) {
       return true;
@@ -21,12 +26,15 @@ export class RolesGuard implements CanActivate {
     const { user } = context.switchToHttp().getRequest();
 
     // التحقق من وجود المستخدم، وأن دوره ضمن الأدوار المطلوبة أو أنه مشرف عام
-    const hasRole = () => user.role === Role.SUPER_ADMIN || requiredRoles.includes(user.role);
+    const hasRole = () =>
+      user.role === Role.SUPER_ADMIN || requiredRoles.includes(user.role);
 
     if (user && user.role && hasRole()) {
       return true;
     }
 
-    throw new ForbiddenException('لا تملك الصلاحيات الكافية للوصول إلى هذا المسار');
+    throw new ForbiddenException(
+      'لا تملك الصلاحيات الكافية للوصول إلى هذا المسار',
+    );
   }
 }

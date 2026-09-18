@@ -8,7 +8,6 @@ import {
 import { Server, Socket } from 'socket.io';
 import { JwtService } from '@nestjs/jwt';
 import { Injectable } from '@nestjs/common';
-import { Notification } from './entities/notification.entity';
 
 @WebSocketGateway({
   cors: {
@@ -22,15 +21,12 @@ export class NotificationsGateway
 {
   @WebSocketServer()
   server!: Server;
- 
-  constructor(
-    private readonly jwtService: JwtService,
-  ) {}
+
+  constructor(private readonly jwtService: JwtService) {}
 
   async handleConnection(client: Socket) {
     try {
-      const token =
-        client.handshake.auth?.token;
+      const token = client.handshake.auth?.token as string | undefined;
 
       if (!token) {
         client.disconnect();
@@ -38,11 +34,12 @@ export class NotificationsGateway
         return;
       }
 
-      const payload =
-        await this.jwtService.verifyAsync(token);
+      const payload = await this.jwtService.verifyAsync<{
+        userId?: string;
+        sub?: string;
+      }>(token);
 
-      const userId =
-        payload.userId ?? payload.sub;
+      const userId = payload.userId ?? payload.sub;
 
       if (!userId) {
         client.disconnect();
@@ -50,52 +47,31 @@ export class NotificationsGateway
         return;
       }
 
-      client.data.userId = userId;
+      client.data = { userId };
 
       const room = `user:${userId}`;
 
-      client.join(room);
+      await client.join(room);
 
-      console.log(
-        `User ${userId} connected with socket ${client.id}`,
-      );
+      console.log(`User ${userId} connected with socket ${client.id}`);
 
-      console.log(
-        `Joined room: ${room}`,
-      );
+      console.log(`Joined room: ${room}`);
     } catch (error) {
-      console.error(
-        'WebSocket authentication failed:',
-        error,
-      );
+      console.error('WebSocket authentication failed:', error);
 
       client.disconnect();
     }
   }
 
   handleDisconnect(client: Socket) {
-    console.log(
-      `Client disconnected: ${client.id}`,
-    );
+    console.log(`Client disconnected: ${client.id}`);
   }
 
-  sendToUser(
-    userId: string,
-    notification: any,
-  ) {    
-    this.server
-      .to(`user:${userId}`)
-      .emit(
-        'notification',
-        notification,
-      );
+  sendToUser(userId: string, notification: any) {
+    this.server.to(`user:${userId}`).emit('notification', notification);
   }
 
   sendToAll(notification: any) {
-    
-    this.server.emit(
-      'notification',
-      notification,
-    );
+    this.server.emit('notification', notification);
   }
 }

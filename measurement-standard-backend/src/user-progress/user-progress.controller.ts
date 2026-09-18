@@ -8,14 +8,14 @@ import { AuthGuard } from '@nestjs/passport';
 export class UserProgressController {
   constructor(private readonly userProgressService: UserProgressService) {}
 
-  @UseGuards(AuthGuard('jwt'))  
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   getProgress(@Req() req: any) {
     // نجلب تقدم المستخدم الحالي بناءً على التوكن الخاص به
     return this.userProgressService.getProgress(req.user.userId);
   }
 
-  @UseGuards(AuthGuard('jwt'))  
+  @UseGuards(AuthGuard('jwt'))
   @Patch()
   updateProgress(@Req() req: any, @Body() updateDto: UpdateUserProgressDto) {
     return this.userProgressService.updateProgress(req.user.userId, updateDto);

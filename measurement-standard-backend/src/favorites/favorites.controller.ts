@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Param, Delete, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Delete,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { FavoritesService } from './favorites.service';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { AuthGuard } from '@nestjs/passport';
@@ -15,10 +24,12 @@ export class FavoritesController {
   @Roles(Role.USER, Role.ADMIN, Role.SUPER_ADMIN)
   @Post()
   add(@Req() req: any, @Body() createFavoriteDto: CreateFavoriteDto) {
-    return this.favoritesService.add(req.user.userId, createFavoriteDto.questionId);
+    return this.favoritesService.add(
+      req.user.userId,
+      createFavoriteDto.questionId,
+    );
   }
 
-  
   @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(@Req() req: any) {

@@ -12,7 +12,7 @@
 //   constructor(private readonly sectionsService: SectionsService) {}
 
 //   @UseGuards(AuthGuard('jwt'), RolesGuard)
-//   @Roles(Role.ADMIN, Role.SUPER_ADMIN) 
+//   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
 //   @Post()
 //   create(@Body() createSectionDto: CreateSectionDto) {
 //     return this.sectionsService.create(createSectionDto);
@@ -29,23 +29,19 @@
 //   }
 
 //   @UseGuards(AuthGuard('jwt'), RolesGuard)
-//   @Roles(Role.ADMIN, Role.SUPER_ADMIN) 
+//   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
 //   @Patch(':id')
 //   update(@Param('id') id: string, @Body() updateSectionDto: UpdateSectionDto) {
 //     return this.sectionsService.update(id, updateSectionDto);
 //   }
 
 //   @UseGuards(AuthGuard('jwt'), RolesGuard)
-//   @Roles(Role.ADMIN, Role.SUPER_ADMIN) 
+//   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
 //   @Delete(':id')
 //   remove(@Param('id') id: string) {
 //     return this.sectionsService.remove(id);
 //   }
 // }
-
-
-
-
 
 import {
   Controller,
@@ -71,9 +67,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 
 @Controller('sections')
 export class SectionsController {
-  constructor(
-    private readonly sectionsService: SectionsService,
-  ) {}
+  constructor(private readonly sectionsService: SectionsService) {}
 
   // ============================================================
   // CREATE
@@ -82,12 +76,8 @@ export class SectionsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Post()
-  create(
-    @Body() createSectionDto: CreateSectionDto,
-  ) {
-    return this.sectionsService.create(
-      createSectionDto,
-    );
+  create(@Body() createSectionDto: CreateSectionDto) {
+    return this.sectionsService.create(createSectionDto);
   }
 
   // ============================================================
@@ -106,12 +96,8 @@ export class SectionsController {
   // ============================================================
 
   @Get('exam-type/:examTypeId')
-  findByExamType(
-    @Param('examTypeId') examTypeId: string,
-  ) {
-    return this.sectionsService.findByExamType(
-      examTypeId,
-    );
+  findByExamType(@Param('examTypeId') examTypeId: string) {
+    return this.sectionsService.findByExamType(examTypeId);
   }
 
   // ============================================================
@@ -130,9 +116,7 @@ export class SectionsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Get(':id/questions')
-  findOneWithQuestions(
-    @Param('id') id: string,
-  ) {
+  findOneWithQuestions(@Param('id') id: string) {
     return this.sectionsService.findOneWithQuestions(id);
   }
 
@@ -143,14 +127,8 @@ export class SectionsController {
   @UseGuards(AuthGuard('jwt'), RolesGuard)
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Patch(':id')
-  update(
-    @Param('id') id: string,
-    @Body() updateSectionDto: UpdateSectionDto,
-  ) {
-    return this.sectionsService.update(
-      id,
-      updateSectionDto,
-    );
+  update(@Param('id') id: string, @Body() updateSectionDto: UpdateSectionDto) {
+    return this.sectionsService.update(id, updateSectionDto);
   }
 
   // ============================================================

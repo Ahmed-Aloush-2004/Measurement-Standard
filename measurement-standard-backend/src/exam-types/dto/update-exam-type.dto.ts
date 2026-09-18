@@ -3,14 +3,7 @@
 
 // export class UpdateExamTypeDto extends PartialType(CreateExamTypeDto) {}
 
-
-
-
-import {
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class UpdateExamTypeDto {
   @IsOptional()

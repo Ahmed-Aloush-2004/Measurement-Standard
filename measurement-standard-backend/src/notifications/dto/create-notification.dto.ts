@@ -7,14 +7,13 @@ import {
 } from 'class-validator';
 
 export class CreateNotificationDto {
-
   // @IsOptional()
   // @IsString()
   // userId?: string;
 
   @IsOptional()
   @IsEmail()
-  user_email?:string;
+  user_email?: string;
 
   @IsString()
   title!: string;

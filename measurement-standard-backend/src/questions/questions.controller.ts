@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
@@ -13,7 +23,7 @@ export class QuestionsController {
   constructor(private readonly questionsService: QuestionsService) {}
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN) 
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Post()
   create(@Body() createQuestionDto: CreateQuestionDto) {
     return this.questionsService.create(createQuestionDto);
@@ -26,13 +36,10 @@ export class QuestionsController {
   //   return this.questionsService.getDailyChallenge();
   // }
 
-
-
-
   // جلب الأسئلة مع فلاتر اختيارية (محمي بـ JWT لمنع كشف الإجابات)
   @UseGuards(AuthGuard('jwt'))
   @Get()
-  findAll(@Query() query: QuestionFilterQueryDto) {      
+  findAll(@Query() query: QuestionFilterQueryDto) {
     return this.questionsService.findAllFiltered(query);
   }
 
@@ -43,14 +50,17 @@ export class QuestionsController {
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN) 
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateQuestionDto: UpdateQuestionDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateQuestionDto: UpdateQuestionDto,
+  ) {
     return this.questionsService.update(id, updateQuestionDto);
   }
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN) 
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.questionsService.remove(id);

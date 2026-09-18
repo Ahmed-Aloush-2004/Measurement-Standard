@@ -13,12 +13,21 @@
 //   @IsUUID('all', { message: 'يجب أن يكون معرف القسم بصيغة UUID' })
 //   @IsNotEmpty()
 //   sectionId!: string;
-  
+
 // }
 
-
-
-import { IsNotEmpty, IsOptional, IsString, IsUUID, IsArray, ValidateNested, IsBoolean, Length, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+  IsArray,
+  ValidateNested,
+  IsBoolean,
+  Length,
+  ArrayMinSize,
+  ArrayMaxSize,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class ChoiceDto {
@@ -46,7 +55,7 @@ export class CreateQuestionDto {
   @IsArray()
   @IsOptional()
   @ArrayMinSize(2, { message: 'يجب إضافة خيارين على الأقل' })
-  @ArrayMaxSize(4, { message: 'لا يمكن إضافة أكثر من 4 خيارات' })  
+  @ArrayMaxSize(4, { message: 'لا يمكن إضافة أكثر من 4 خيارات' })
   @ValidateNested({ each: true })
   @Type(() => ChoiceDto)
   choices?: ChoiceDto[];

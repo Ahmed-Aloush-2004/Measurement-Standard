@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { ExamTypesService } from './exam-types.service';
 import { CreateExamTypeDto } from './dto/create-exam-type.dto';
 import { UpdateExamTypeDto } from './dto/update-exam-type.dto';
@@ -13,7 +22,7 @@ export class ExamTypesController {
 
   // إضافة نوع اختبار جديد (محمي بـ JWT)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)   
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Post()
   create(@Body() createExamTypeDto: CreateExamTypeDto) {
     return this.examTypesService.create(createExamTypeDto);
@@ -33,15 +42,18 @@ export class ExamTypesController {
 
   // تحديث نوع اختبار (محمي)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN) 
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateExamTypeDto: UpdateExamTypeDto) {
+  update(
+    @Param('id') id: string,
+    @Body() updateExamTypeDto: UpdateExamTypeDto,
+  ) {
     return this.examTypesService.update(id, updateExamTypeDto);
   }
 
   // حذف نوع اختبار (محمي)
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN) 
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.examTypesService.remove(id);

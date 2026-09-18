@@ -28,14 +28,13 @@
 // import { AnalyticsModule } from './analytics/analytics.module';
 // import { ScheduleModule } from '@nestjs/schedule';
 
-
 // @Module({
 //   imports: [
 //     // تهيئة المتغيرات البيئية وجعلها متاحة في جميع أنحاء التطبيق
 //     ConfigModule.forRoot({
 //       isGlobal: true,
 //     }),
-    
+
 //     // الاتصال بقاعدة البيانات باستخدام ConfigService
 //     TypeOrmModule.forRootAsync({
 //       imports: [ConfigModule],
@@ -48,7 +47,7 @@
 //         password: configService.get<string>('DB_PASSWORD'),
 //         database: configService.get<string>('DB_NAME'),
 //         autoLoadEntities: true, // يقوم بتحميل الجداول تلقائياً دون الحاجة لكتابتها يدوياً
-//         synchronize: true, 
+//         synchronize: true,
 //       }),
 //     }),
 
@@ -67,16 +66,16 @@
 //       }),
 //     }),
 
-//     UsersModule, 
-//     UserProgressModule, 
-//     ExamTypesModule, 
-//     SectionsModule, 
-//     QuestionsModule, 
-//     ChoicesModule, 
+//     UsersModule,
+//     UserProgressModule,
+//     ExamTypesModule,
+//     SectionsModule,
+//     QuestionsModule,
+//     ChoicesModule,
 //     UserResponsesModule,
-//     AuthModule, 
-//     FavoritesModule, 
-//     TestSessionsModule, 
+//     AuthModule,
+//     FavoritesModule,
+//     TestSessionsModule,
 //     NotificationsModule,
 //     AnalyticsModule,
 //     ScheduleModule.forRoot(),
@@ -86,17 +85,14 @@
 // })
 // export class AppModule {}
 
-
-
-
-
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+
+import { PrismaModule } from './prisma/prisma.module';
 
 import { UsersModule } from './users/users.module';
 import { UserProgressModule } from './user-progress/user-progress.module';
@@ -117,39 +113,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
       isGlobal: true,
     }),
 
-    // Single unified TypeORM configuration
-    TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => {
-        const dbUrl = configService.get<string>('DATABASE_URL');
-
-        // Check if using single DATABASE_URL connection string or individual credentials
-        if (dbUrl) {
-          return {
-            type: 'postgres',
-            url: dbUrl,
-            schema: 'public',
-            ssl: {
-              rejectUnauthorized: false, // Required for Neon / hosted SSL databases
-            },
-            autoLoadEntities: true,
-            synchronize: false, // Set to false when using migrations
-          };
-        }
-
-        return {
-          type: 'postgres',
-          host: configService.get<string>('DB_HOST'),
-          port: configService.get<number>('DB_PORT'),
-          username: configService.get<string>('DB_USER'),
-          password: configService.get<string>('DB_PASSWORD'),
-          database: configService.get<string>('DB_NAME'),
-          autoLoadEntities: true,
-          synchronize: false, // Set to false when using migrations
-        };
-      },
-    }),
+    PrismaModule,
 
     UsersModule,
     UserProgressModule,
@@ -163,7 +127,9 @@ import { AnalyticsModule } from './analytics/analytics.module';
     TestSessionsModule,
     NotificationsModule,
     AnalyticsModule,
-    ScheduleModule.forRoot(),
+    ...(process.env.VERCEL === '1'
+      ? []
+      : [ScheduleModule.forRoot()]),
   ],
   controllers: [AppController],
   providers: [AppService],

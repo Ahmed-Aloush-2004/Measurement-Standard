@@ -11,11 +11,14 @@ export class TestSessionsController {
   @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Req() req: any, @Body() createTestSessionDto: CreateTestSessionDto) {
-    return this.testSessionsService.create(req.user.userId,req.user.email, createTestSessionDto);
+    return this.testSessionsService.create(
+      req.user.userId,
+      req.user.email,
+      createTestSessionDto,
+    );
   }
 
-
-  @UseGuards(AuthGuard('jwt'))  
+  @UseGuards(AuthGuard('jwt'))
   @Get()
   findAll(@Req() req: any) {
     return this.testSessionsService.findAllForUser(req.user.userId);

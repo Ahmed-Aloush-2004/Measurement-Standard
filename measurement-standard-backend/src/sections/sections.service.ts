@@ -1,36 +1,20 @@
-
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
-
-import { InjectRepository } from '@nestjs/typeorm';
-
-import { Repository } from 'typeorm';
+import { Injectable, NotFoundException } from '@nestjs/common';
 
 import { CreateSectionDto } from './dto/create-section.dto';
 import { UpdateSectionDto } from './dto/update-section.dto';
 
-import { Section } from './entities/section.entity';
-import { ExamType } from '../exam-types/entities/exam-type.entity';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class SectionsService {
-  constructor(
-    @InjectRepository(Section)
-    private readonly sectionRepository: Repository<Section>,
-
-    @InjectRepository(ExamType)
-    private readonly examTypeRepository: Repository<ExamType>,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   // ============================================================
   // CREATE SECTION
   // ============================================================
 
   async create(createSectionDto: CreateSectionDto) {
-    const examType = await this.examTypeRepository.findOne({
+    const examType = await this.prisma.examType.findUnique({
       where: {
         id: createSectionDto.examTypeId,
       },
@@ -42,12 +26,12 @@ export class SectionsService {
       );
     }
 
-    const section = this.sectionRepository.create({
-      name: createSectionDto.name,
-      examType,
+    return await this.prisma.section.create({
+      data: {
+        name: createSectionDto.name,
+        exam_type_id: createSectionDto.examTypeId,
+      },
     });
-
-    return await this.sectionRepository.save(section);
   }
 
   // ============================================================
@@ -55,12 +39,12 @@ export class SectionsService {
   // ============================================================
 
   async findAll() {
-    return await this.sectionRepository.find({
-      relations: {
+    return await this.prisma.section.findMany({
+      include: {
         examType: true,
       },
-      order: {
-        name: 'ASC',
+      orderBy: {
+        name: 'asc',
       },
     });
   }
@@ -72,29 +56,25 @@ export class SectionsService {
   // ============================================================
 
   async findByExamType(examTypeId: string) {
-    const examType = await this.examTypeRepository.findOne({
+    const examType = await this.prisma.examType.findUnique({
       where: {
         id: examTypeId,
       },
     });
 
     if (!examType) {
-      throw new NotFoundException(
-        `نوع الاختبار برقم ${examTypeId} غير موجود`,
-      );
+      throw new NotFoundException(`نوع الاختبار برقم ${examTypeId} غير موجود`);
     }
 
-    return await this.sectionRepository.find({
+    return await this.prisma.section.findMany({
       where: {
-        examType: {
-          id: examTypeId,
-        },
+        exam_type_id: examTypeId,
       },
-      relations: {
+      include: {
         examType: true,
       },
-      order: {
-        name: 'ASC',
+      orderBy: {
+        name: 'asc',
       },
     });
   }
@@ -104,20 +84,16 @@ export class SectionsService {
   // ============================================================
 
   async findOne(id: string) {
-    const section = await this.sectionRepository.findOne({
-      where: {
-        id,
-      },
-      relations: {
+    const section = await this.prisma.section.findUnique({
+      where: { id },
+      include: {
         examType: true,
         questions: true,
       },
     });
 
     if (!section) {
-      throw new NotFoundException(
-        `القسم برقم ${id} غير موجود`,
-      );
+      throw new NotFoundException(`القسم برقم ${id} غير موجود`);
     }
 
     return section;
@@ -132,22 +108,20 @@ export class SectionsService {
   // ============================================================
 
   async findOneWithQuestions(id: string) {
-    const section = await this.sectionRepository.findOne({
-      where: {
-        id,
-      },
-      relations: {
+    const section = await this.prisma.section.findUnique({
+      where: { id },
+      include: {
         examType: true,
         questions: {
-          choices: true,
+          include: {
+            choices: true,
+          },
         },
       },
     });
 
     if (!section) {
-      throw new NotFoundException(
-        `القسم برقم ${id} غير موجود`,
-      );
+      throw new NotFoundException(`القسم برقم ${id} غير موجود`);
     }
 
     return section;
@@ -157,31 +131,23 @@ export class SectionsService {
   // UPDATE
   // ============================================================
 
-  async update(
-    id: string,
-    updateSectionDto: UpdateSectionDto,
-  ) {
-    const section = await this.sectionRepository.findOne({
-      where: {
-        id,
-      },
-      relations: {
-        examType: true,
-      },
+  async update(id: string, updateSectionDto: UpdateSectionDto) {
+    const section = await this.prisma.section.findUnique({
+      where: { id },
     });
 
     if (!section) {
-      throw new NotFoundException(
-        `القسم برقم ${id} غير موجود`,
-      );
+      throw new NotFoundException(`القسم برقم ${id} غير موجود`);
     }
 
+    const data: { name?: string; exam_type_id?: string } = {};
+
     if (updateSectionDto.name !== undefined) {
-      section.name = updateSectionDto.name;
+      data.name = updateSectionDto.name;
     }
 
     if (updateSectionDto.examTypeId !== undefined) {
-      const examType = await this.examTypeRepository.findOne({
+      const examType = await this.prisma.examType.findUnique({
         where: {
           id: updateSectionDto.examTypeId,
         },
@@ -193,10 +159,13 @@ export class SectionsService {
         );
       }
 
-      section.examType = examType;
+      data.exam_type_id = updateSectionDto.examTypeId;
     }
 
-    return await this.sectionRepository.save(section);
+    return await this.prisma.section.update({
+      where: { id },
+      data,
+    });
   }
 
   // ============================================================
@@ -204,19 +173,15 @@ export class SectionsService {
   // ============================================================
 
   async remove(id: string) {
-    const section = await this.sectionRepository.findOne({
-      where: {
-        id,
-      },
+    const section = await this.prisma.section.findUnique({
+      where: { id },
     });
 
     if (!section) {
-      throw new NotFoundException(
-        `القسم برقم ${id} غير موجود`,
-      );
+      throw new NotFoundException(`القسم برقم ${id} غير موجود`);
     }
 
-    await this.sectionRepository.remove(section);
+    await this.prisma.section.delete({ where: { id } });
 
     return {
       success: true,

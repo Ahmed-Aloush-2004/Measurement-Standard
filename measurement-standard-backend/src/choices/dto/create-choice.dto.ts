@@ -5,7 +5,9 @@ export class CreateChoiceDto {
   @IsNotEmpty({ message: 'نص الخيار مطلوب' })
   content!: string;
 
-  @IsBoolean({ message: 'يجب تحديد ما إذا كان الخيار صحيحاً أم لا (true/false)' })
+  @IsBoolean({
+    message: 'يجب تحديد ما إذا كان الخيار صحيحاً أم لا (true/false)',
+  })
   @IsNotEmpty({ message: 'حالة الخيار (صحيح/خاطئ) مطلوبة' })
   is_correct!: boolean;
 

@@ -22,45 +22,35 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 @UseGuards(AuthGuard('jwt'))
 @Controller('notifications')
 export class NotificationsController {
-  constructor(
-    private readonly notificationsService: NotificationsService,
-  ) { }
+  constructor(private readonly notificationsService: NotificationsService) {}
 
   // --------------------------------------------------
-  // SEND A NOTIFICATIONS FOR ALL USERS 
+  // SEND A NOTIFICATIONS FOR ALL USERS
   // --------------------------------------------------
-
 
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)   
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Post('all-user')
   sendNotificationForAllUsers(
     @Body() createNotificationDto: CreateNotificationDto,
   ) {
-    return this.notificationsService.create(
-      {
-        title: createNotificationDto.title,
-        message: createNotificationDto.message,
-        type: createNotificationDto.type,
-        url: createNotificationDto.url,
-      },
-    );
+    return this.notificationsService.create({
+      title: createNotificationDto.title,
+      message: createNotificationDto.message,
+      type: createNotificationDto.type,
+      url: createNotificationDto.url,
+    });
   }
 
   // --------------------------------------------------
   //  SEND A NOTIFICATION FOR A SPECIFICE USER
   // --------------------------------------------------
 
-
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.ADMIN, Role.SUPER_ADMIN)   
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Post()
-  create(
-    @Body() createNotificationDto: CreateNotificationDto,
-  ) {
-    return this.notificationsService.create(
-      createNotificationDto,
-    );
+  create(@Body() createNotificationDto: CreateNotificationDto) {
+    return this.notificationsService.create(createNotificationDto);
   }
 
   // --------------------------------------------------
@@ -69,9 +59,7 @@ export class NotificationsController {
 
   @Get()
   findAll(@Req() req: any) {
-    return this.notificationsService.findAllForUser(
-      req.user.userId,
-    );
+    return this.notificationsService.findAllForUser(req.user.userId);
   }
 
   // --------------------------------------------------
@@ -79,18 +67,11 @@ export class NotificationsController {
   // --------------------------------------------------
 
   @Patch(':id/read')
-  markAsRead(
-    @Param('id') id: string,
-    @Req() req: any,
-  ) {
-    console.log('this is the id : ',id);
-    
-    return this.notificationsService.markAsRead(
-      id,
-      req.user.userId,
-    );
-  }
+  markAsRead(@Param('id') id: string, @Req() req: any) {
+    console.log('this is the id : ', id);
 
+    return this.notificationsService.markAsRead(id, req.user.userId);
+  }
 
   // Add inside notifications.controller.ts
   @Patch('read-all')
@@ -103,16 +84,7 @@ export class NotificationsController {
   // --------------------------------------------------
 
   @Delete(':id')
-  delete(
-    @Param('id') id: string,
-    @Req() req: any,
-  ) {
-    return this.notificationsService.delete(
-      id,
-      req.user.userId,
-    );
+  delete(@Param('id') id: string, @Req() req: any) {
+    return this.notificationsService.delete(id, req.user.userId);
   }
-
-
-
 }
