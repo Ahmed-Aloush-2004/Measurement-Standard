@@ -1,8 +1,19 @@
-export enum Role {
-  USER = 'user',
-  ADMIN = 'admin',
-  SUPER_ADMIN = 'super_admin',
-}
+// export enum Role {
+//   USER = 'user',
+//   ADMIN = 'admin',
+//   SUPER_ADMIN = 'super_admin',
+// }
+
+// Or as a const object if you need runtime values:
+export const Role = {
+  USER: 'user',
+  ADMIN: 'admin',
+  SUPER_ADMIN: 'super_admin',
+} as const;
+
+export type Role = typeof Role[keyof typeof Role];
+
+
 
 export interface UserProfile {
   id: string;

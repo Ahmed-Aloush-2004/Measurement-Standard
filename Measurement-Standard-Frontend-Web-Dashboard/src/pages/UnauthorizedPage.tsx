@@ -1,11 +1,11 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
-import type { RootState, AppDispatch } from '../store/store';
-import { FaLock, FaEnvelope, FaSignOutAlt } from 'react-icons/fa';
+import {  useSelector } from 'react-redux';
+// import { useNavigate } from 'react-router-dom';
+import type { RootState,  } from '../store/store';
+import { FaLock, FaEnvelope } from 'react-icons/fa';
 
 export function UnauthorizedPage() {
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
+  // const dispatch = useDispatch<AppDispatch>();
+  // const navigate = useNavigate();
   const { user } = useSelector((state: RootState) => state.auth);
 
 
