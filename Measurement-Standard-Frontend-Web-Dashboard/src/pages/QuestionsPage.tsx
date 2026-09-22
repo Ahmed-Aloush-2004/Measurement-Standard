@@ -7,6 +7,7 @@ import { fetchSections } from '../store/slices/sectionsSlice';
 import { fetchQuestions, createQuestion, updateQuestion, deleteQuestion } from '../store/slices/questionsSlice';
 import type { Question } from '../types';
 import { FaPlus, FaTrash } from 'react-icons/fa';
+import { Loader } from '../components/layout/Loader';
 
 interface FormErrors {
   content?: string;
@@ -20,7 +21,7 @@ export function QuestionsPage() {
   const dispatch = useDispatch<AppDispatch>();
   const { data: examTypes } = useSelector((state: RootState) => state.examTypes);
   const { data: sections } = useSelector((state: RootState) => state.sections);
-  const { items: questions, totalPages, page: currentPage } = useSelector((state: RootState) => state.questions);
+  const { items: questions, totalPages, page: currentPage, loading: questionsLoading } = useSelector((state: RootState) => state.questions);
 
   const [selectedExamType, setSelectedExamType] = useState('');
   const [selectedSection, setSelectedSection] = useState('');
@@ -278,41 +279,47 @@ export function QuestionsPage() {
         </div>
       </div>
 
-      {/* Question List */}
-      <div className="space-y-3 mb-6">
-        {Array.isArray(questions) && questions.length > 0 ? (
-          questions.map((q) => (
-            <div
-              key={q.id}
-              onClick={() => { setErrors({}); setEditingQuestion(q); }}
-              className="p-4 border rounded-xl bg-white hover:border-blue-500 cursor-pointer transition-colors shadow-sm"
-            >
-              <p className="font-semibold text-lg">{q.content}</p>
-            </div>
-          ))
-        ) : (
-          <p className="text-gray-500 text-center py-6">لا توجد أسئلة متاحة</p>
-        )}
-      </div>
+      {/* Question List / Loader */}
+      {questionsLoading ? (
+        <Loader />
+      ) : (
+        <>
+          <div className="space-y-3 mb-6">
+            {Array.isArray(questions) && questions.length > 0 ? (
+              questions.map((q) => (
+                <div
+                  key={q.id}
+                  onClick={() => { setErrors({}); setEditingQuestion(q); }}
+                  className="p-4 border rounded-xl bg-white hover:border-blue-500 cursor-pointer transition-colors shadow-sm"
+                >
+                  <p className="font-semibold text-lg">{q.content}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-500 text-center py-6">لا توجد أسئلة متاحة</p>
+            )}
+          </div>
 
-      {/* Pagination Controls */}
-      <div className="flex justify-center items-center gap-2">
-        <button
-          disabled={currentPage <= 1}
-          onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          السابق
-        </button>
-        <span>الصفحة {currentPage} من {totalPages || 1}</span>
-        <button
-          disabled={currentPage >= totalPages || totalPages === 0}
-          onClick={() => setPage((prev) => prev + 1)}
-          className="px-3 py-1 border rounded disabled:opacity-50"
-        >
-          التالي
-        </button>
-      </div>
+          {/* Pagination Controls */}
+          <div className="flex justify-center items-center gap-2">
+            <button
+              disabled={currentPage <= 1}
+              onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              السابق
+            </button>
+            <span>الصفحة {currentPage} من {totalPages || 1}</span>
+            <button
+              disabled={currentPage >= totalPages || totalPages === 0}
+              onClick={() => setPage((prev) => prev + 1)}
+              className="px-3 py-1 border rounded disabled:opacity-50"
+            >
+              التالي
+            </button>
+          </div>
+        </>
+      )}
 
       {/* Add Question Modal */}
       {isAddModalOpen && (

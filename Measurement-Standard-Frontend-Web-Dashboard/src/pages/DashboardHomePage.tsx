@@ -1,6 +1,8 @@
+
 import { useEffect, useState } from 'react';
 import { axiosClient } from '../api/axiosClient';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
+import { Loader } from '../components/layout/Loader';
 
 export function DashboardHomePage() {
   const [stats, setStats] = useState<any>(null);
@@ -13,7 +15,14 @@ export function DashboardHomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-6 text-center">جاري تحميل الإحصائيات...</div>;
+  if (loading) {
+    return (
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6" dir="rtl">لوحة التحليلات والإحصائيات</h1>
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6" dir="rtl">

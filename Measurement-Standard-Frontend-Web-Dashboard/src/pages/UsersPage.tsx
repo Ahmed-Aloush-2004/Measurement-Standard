@@ -1,11 +1,11 @@
 
-
 import { useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import type { RootState, AppDispatch } from '../store/store'; // Adjust path to your RootState/AppDispatch
+import type { RootState, AppDispatch } from '../store/store';
 import { fetchUsers, updateUserRole, deleteUser, setSearchTerm } from '../store/slices/usersSlice';
 import { Role } from '../types';
 import { FaUserShield, FaTrash, FaSearch } from 'react-icons/fa';
+import { Loader } from '../components/layout/Loader';
 
 export function UsersPage() {
   const dispatch = useDispatch<AppDispatch>();
@@ -34,7 +34,19 @@ export function UsersPage() {
     );
   }, [users, searchTerm]);
 
-  if (loading) return <div className="p-6 text-gray-600 font-semibold">جاري التحميل...</div>;
+  if (loading) {
+    return (
+      <div>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+          <h1 className="text-2xl font-bold flex items-center gap-2">
+            <FaUserShield /> إدارة الصلاحيات والمستخدمين
+          </h1>
+        </div>
+        <Loader />
+      </div>
+    );
+  }
+
   if (error) return <div className="p-6 text-red-600 font-semibold">{error}</div>;
 
   return (
