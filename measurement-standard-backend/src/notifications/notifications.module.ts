@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { NotificationsController } from './notifications.controller';
+import { CronController } from './cron.controller';
 import { NotificationsGateway } from './notifications.gateway';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -18,7 +19,7 @@ import { UsersModule } from 'src/users/users.module';
     }),
     UsersModule,
   ],
-  controllers: [NotificationsController],
+  controllers: [NotificationsController, CronController],
   providers: [NotificationsService, NotificationsGateway],
   exports: [NotificationsService, NotificationsGateway],
 })

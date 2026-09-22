@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { User } from '@prisma/client';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 import { OAuth2Client } from 'google-auth-library';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
