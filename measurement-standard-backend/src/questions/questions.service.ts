@@ -8,7 +8,7 @@ import { Question, Section, ExamType, Choice } from '@prisma/client';
 import { CreateQuestionDto } from './dto/create-question.dto';
 import { UpdateQuestionDto } from './dto/update-question.dto';
 import { QuestionFilterQueryDto } from './dto/question-filter.query.dto';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 type QuestionWithRelations = Question & {
   section: (Section & { examType: ExamType }) | null;

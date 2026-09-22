@@ -16,8 +16,8 @@ import { AuthGuard } from '@nestjs/passport';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { CloudinaryService } from './cloudinary.service';
 import UserProfile from './interfaces/user-profile.interface';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { Role } from 'src/auth/enums/role.enum';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
 import { UpdateRoleDto } from './dto/update-role.dto';
 
 @UseGuards(AuthGuard('jwt'))

@@ -2,8 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import UserProfile from './interfaces/user-profile.interface';
 import { CloudinaryService } from './cloudinary.service';
-import { Role } from 'src/auth/enums/role.enum';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { Role } from '../auth/enums/role.enum';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class UsersService {

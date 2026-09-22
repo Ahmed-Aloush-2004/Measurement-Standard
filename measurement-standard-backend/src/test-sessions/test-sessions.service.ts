@@ -6,8 +6,8 @@ import {
 
 import { CreateTestSessionDto } from './dto/create-test-session.dto';
 
-import { NotificationsService } from 'src/notifications/notifications.service';
-import { PrismaService } from 'src/prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class TestSessionsService {

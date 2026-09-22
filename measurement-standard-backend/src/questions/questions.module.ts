@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { QuestionsService } from './questions.service';
 import { QuestionsController } from './questions.controller';
-import { ChoicesModule } from 'src/choices/choices.module';
+import { ChoicesModule } from '../choices/choices.module';
 
 @Module({
   imports: [ChoicesModule],

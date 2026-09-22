@@ -15,9 +15,9 @@ import { AuthGuard } from '@nestjs/passport';
 import { NotificationsService } from './notifications.service';
 
 import { CreateNotificationDto } from './dto/create-notification.dto';
-import { Roles } from 'src/auth/decorators/roles.decorator';
-import { Role } from 'src/auth/enums/role.enum';
-import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Roles } from '../auth/decorators/roles.decorator';
+import { Role } from '../auth/enums/role.enum';
+import { RolesGuard } from '../auth/guards/roles.guard';
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('notifications')

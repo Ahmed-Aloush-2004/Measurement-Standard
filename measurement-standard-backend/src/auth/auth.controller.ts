@@ -14,7 +14,7 @@ import { AuthGuard } from '@nestjs/passport';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { CloudinaryService } from 'src/users/cloudinary.service';
+import { CloudinaryService } from '../users/cloudinary.service';
 
 @Controller('auth')
 export class AuthController {
