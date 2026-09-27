@@ -34,10 +34,17 @@ export const fetchFavorites = createAsyncThunk(
 
 export const addFavorite = createAsyncThunk(
   "favorites/add",
-  async (questionId: string, { rejectWithValue }) => {
+  async (
+    arg: { questionId: string; question: FavoriteItem["question"] },
+    { rejectWithValue },
+  ) => {
     try {
-      const res = await apiClient.post("/favorites", { questionId });
-      return res.data;
+      const res = await apiClient.post("/favorites", {
+        questionId: arg.questionId,
+      });
+      // POST /favorites returns the bare favorite row without `question`,
+      // so rebuild the item from the question we already have in hand.
+      return { id: res.data.id, question: arg.question };
     } catch (err: any) {
       return rejectWithValue(err.response?.data?.message || "فشل إضافة المفضلة");
     }
@@ -65,8 +72,11 @@ const favoritesSlice = createSlice({
       .addCase(fetchFavorites.pending, (s) => { s.isLoading = true; s.error = null; })
       .addCase(fetchFavorites.fulfilled, (s, a) => { s.isLoading = false; s.items = a.payload; })
       .addCase(fetchFavorites.rejected, (s, a) => { s.isLoading = false; s.error = a.payload as string; })
-      .addCase(addFavorite.fulfilled, (s, a) => { s.items.push(a.payload); })
-      .addCase(removeFavorite.fulfilled, (s, a) => { s.items = s.items.filter((f) => f.question.id !== a.payload); });
+      .addCase(addFavorite.fulfilled, (s, a) => {
+        const exists = s.items.some((f) => f.question?.id === a.payload.question.id);
+        if (!exists) s.items.push(a.payload);
+      })
+      .addCase(removeFavorite.fulfilled, (s, a) => { s.items = s.items.filter((f) => f.question?.id !== a.payload); });
   },
 });
 

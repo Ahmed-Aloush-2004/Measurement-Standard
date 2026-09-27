@@ -21,7 +21,12 @@ export default function MistakesScreen() {
     (state: RootState) => state.favorites.items,
   );
   const favoriteIds = useMemo(
-    () => new Set(favoriteItems.map((f) => f.question.id)),
+    () =>
+      new Set(
+        favoriteItems
+          .map((f) => f.question?.id)
+          .filter((id): id is string => Boolean(id)),
+      ),
     [favoriteItems],
   );
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -79,7 +84,12 @@ export default function MistakesScreen() {
                     onPress={() =>
                       isFavorite
                         ? dispatch(removeFavorite(item.question.id))
-                        : dispatch(addFavorite(item.question.id))
+                        : dispatch(
+                            addFavorite({
+                              questionId: item.question.id,
+                              question: item.question,
+                            }),
+                          )
                     }
                     className="w-8 h-8 items-center justify-center"
                   >
