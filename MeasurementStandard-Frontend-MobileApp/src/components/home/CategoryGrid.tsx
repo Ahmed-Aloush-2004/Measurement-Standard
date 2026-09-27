@@ -1,5 +1,5 @@
 
-import React from "react";
+import React, { useMemo } from "react";
 import { MaterialCommunityIcons, Ionicons } from "@expo/vector-icons";
 import { Text, TouchableOpacity, View } from "react-native";
 import { ExamType } from "@/src/store/sectionsSlice";
@@ -10,53 +10,94 @@ interface CategoryGridProps {
   onProgressPress: () => void;
 }
 
-// Map the visuals directly to the exam code so they never get mixed up
-function getExamVisual(code?: string) {
-  switch (code) {
-    case "STEP":
-      return {
-        backgroundColor: "#E7F4FD",
-        buttonColor: "#168FD4",
-        icon: (
-          <View className="w-[35px] h-[35px] rounded-full bg-[#168FD4] items-center justify-center">
-            <Text className="text-white text-[10px] font-black">STEP</Text>
-          </View>
-        ),
-      };
-    case "GENERAL_APTITUDE":
-      return {
-        backgroundColor: "#E4F8F4",
-        buttonColor: "#20B7A5",
-        icon: (
-          <MaterialCommunityIcons
-            name="calculator-variant"
-            size={32}
-            color="#20B7A5"
-          />
-        ),
-      };
-    case "ACHIEVEMENT":
-      return {
-        backgroundColor: "#FFF0E5",
-        buttonColor: "#F28A3C",
-        icon: (
-          <MaterialCommunityIcons
-            name="book-open-page-variant"
-            size={32}
-            color="#F08035"
-          />
-        ),
-      };
-    case "PRACTICE":
-    default:
-      return {
-        backgroundColor: "#F0E7FF",
-        buttonColor: "#7641D8",
-        icon: (
-          <MaterialCommunityIcons name="brain" size={32} color="#7540D5" />
-        ),
-      };
+type IconName = React.ComponentProps<typeof MaterialCommunityIcons>["name"];
+
+interface ExamVisual {
+  backgroundColor: string;
+  buttonColor: string;
+  icon: IconName;
+  /** Renders as a filled circle with text instead of an icon. */
+  badge?: string;
+}
+
+/**
+ * The visual slots, in order. Every exam that is not in EXAM_VISUALS is handed
+ * out one of these by getExamVisuals, so a new exam created from the admin
+ * panel is styled automatically instead of falling through to one shared look.
+ * The two colours per slot are a pale tint for the card and a saturated tone for
+ * the button, which carries white text.
+ */
+const PALETTE: ExamVisual[] = [
+  { backgroundColor: "#E7F4FD", buttonColor: "#168FD4", icon: "school", badge: "STEP" },
+  { backgroundColor: "#E4F8F4", buttonColor: "#20B7A5", icon: "calculator-variant" },
+  { backgroundColor: "#FFF0E5", buttonColor: "#F08035", icon: "book-open-page-variant" },
+  { backgroundColor: "#E8EDFD", buttonColor: "#4C6EF5", icon: "scale-balance" },
+  { backgroundColor: "#FFE9F2", buttonColor: "#D63384", icon: "target" },
+  { backgroundColor: "#E9F9EC", buttonColor: "#2F9E44", icon: "lightbulb-on" },
+  { backgroundColor: "#FFF4E6", buttonColor: "#E8590C", icon: "abjad-arabic" },
+  { backgroundColor: "#F0E7FF", buttonColor: "#7641D8", icon: "pencil-ruler" },
+];
+
+/**
+ * Exams that exist today, pinned to a slot so their colour never shifts when an
+ * unrelated exam is added. Keep this in the same order as the backend's exam
+ * types (see prisma/sql/*.sql).
+ */
+const PINNED: Record<string, number> = {
+  STEP: 0,
+  GENERAL_APTITUDE: 1,
+  ACHIEVEMENT: 2,
+  QIYAS: 3,
+  TIMSS: 4,
+  ACHJUMAN: 5,
+  IRODORI: 6,
+  PRACTICE: 7,
+};
+
+/** Stable string hash, so an unknown exam keeps the same slot across renders. */
+function hashCode(value: string) {
+  let hash = 0;
+  for (let i = 0; i < value.length; i++) {
+    hash = (hash * 31 + value.charCodeAt(i)) | 0;
   }
+  return Math.abs(hash);
+}
+
+/**
+ * Resolve one visual per exam type.
+ *
+ * Pinned codes take their slot first so the known set is fixed. Every other code
+ * then probes forward from its hash for the first slot still free, which keeps
+ * the mapping stable per code while making two new exams added together come out
+ * different rather than identical.
+ */
+function getExamVisuals(examTypes: ExamType[]) {
+  const taken = new Set<number>();
+  const result = new Map<string, ExamVisual>();
+
+  for (const examType of examTypes) {
+    const slot = PINNED[examType.code];
+    if (slot === undefined || taken.has(slot)) continue;
+    taken.add(slot);
+    result.set(examType.code, PALETTE[slot]);
+  }
+
+  for (const examType of examTypes) {
+    if (result.has(examType.code)) continue;
+    const start = hashCode(examType.code) % PALETTE.length;
+    let slot = start;
+    for (let i = 0; i < PALETTE.length; i++) {
+      const candidate = (start + i) % PALETTE.length;
+      if (!taken.has(candidate)) {
+        slot = candidate;
+        break;
+      }
+    }
+    taken.add(slot);
+    result.set(examType.code, PALETTE[slot]);
+  }
+
+  return result;
 }
 
 export default function CategoryGrid({
@@ -64,6 +105,9 @@ export default function CategoryGrid({
   onExamPress,
   onProgressPress,
 }: CategoryGridProps) {
+  // Built once per list so the colour of one card cannot depend on the others.
+  const visuals = useMemo(() => getExamVisuals(examTypes), [examTypes]);
+
   return (
     <View className="px-5 mt-4">
       <View className="flex-row items-center justify-end mb-3">
@@ -81,8 +125,8 @@ export default function CategoryGrid({
 
       <View className="flex-row flex-wrap justify-between">
         {examTypes?.map((examType) => {
-          // Pass the code instead of the index
-          const visual = getExamVisual(examType.code);
+          // Keyed by code, so a new exam resolves through the palette
+          const visual = visuals.get(examType.code) ?? PALETTE[0];
 
           const questionCount =
             examType.sections?.reduce(
@@ -102,7 +146,22 @@ export default function CategoryGrid({
               }}
             >
               <View className="h-[35px] items-center justify-center">
-                {visual.icon}
+                {visual.badge ? (
+                  <View
+                    className="w-[35px] h-[35px] rounded-full items-center justify-center"
+                    style={{ backgroundColor: visual.buttonColor }}
+                  >
+                    <Text className="text-white text-[10px] font-black">
+                      {visual.badge}
+                    </Text>
+                  </View>
+                ) : (
+                  <MaterialCommunityIcons
+                    name={visual.icon}
+                    size={32}
+                    color={visual.buttonColor}
+                  />
+                )}
               </View>
 
               <View className="items-center flex-1 justify-center mt-2 mb-2">

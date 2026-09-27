@@ -1,8 +1,9 @@
 const { emit } = require("../gen-sql");
 
 const examType = {
-  name: "إيرودوري",
+  name: "اللغة العربية",
   code: "IRODORI",
+  renamedFrom: ["إيرودوري"],
   sections: ["النحو", "الصرف", "البلاغة", "العروض", "الإملاء"],
 };
 

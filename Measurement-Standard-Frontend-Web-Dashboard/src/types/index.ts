@@ -1,8 +1,3 @@
-// export enum Role {
-//   USER = 'user',
-//   ADMIN = 'admin',
-//   SUPER_ADMIN = 'super_admin',
-// }
 
 // Or as a const object if you need runtime values:
 export const Role = {

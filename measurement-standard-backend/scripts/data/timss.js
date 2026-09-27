@@ -1,8 +1,9 @@
 const { emit } = require("../gen-sql");
 
 const examType = {
-  name: "تميس",
+  name: "الرياضيات والعلوم",
   code: "TIMSS",
+  renamedFrom: ["تميس"],
   sections: ["الرياضيات", "العلوم", "البيانات", "الدراسة", "القراءة"],
 };
 

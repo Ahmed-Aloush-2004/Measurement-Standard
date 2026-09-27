@@ -39,13 +39,6 @@ export default function MistakesScreen() {
     load();
   }, [load]);
 
-
-  console.log('mistake set : ', new Set(mistakes.map((mistake)=> mistake.id)).size);
-  console.log('------------------------------------------');
-  console.log('Mistakes state:', { mistakes: mistakes.length, set_mistake: [new Set(mistakes.map((mistake)=> mistake.id))].length });
-  console.log('------------------------------------------');  
-
- 
   return (
     <View className="flex-1 bg-[#F8FAFC]">
       <Stack.Screen options={{ headerShown: false }} />

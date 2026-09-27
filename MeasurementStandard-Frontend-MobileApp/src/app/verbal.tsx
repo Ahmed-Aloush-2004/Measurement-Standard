@@ -29,12 +29,6 @@ export default function VerbalScreen() {
     s.name?.toLowerCase().includes("لفظ") || s.name?.toLowerCase().includes("verbal"),
   );
 
-
-    console.log('--------------------------------------------')
-    console.log('this ,verbalSections[0] : ',verbalSections[0]?.questions.length)
-    console.log('--------------------------------------------')
-
-
   return (
     <View className="flex-1 bg-[#F8FAFC]">
       <Stack.Screen options={{ headerShown: false }} />

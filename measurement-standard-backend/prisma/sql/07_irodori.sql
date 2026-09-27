@@ -1,5 +1,5 @@
 -- ============================================================================
--- 07_irodori.sql   |   Exam type: إيرودوري  (code = 'IRODORI')
+-- 07_irodori.sql   |   Exam type: اللغة العربية  (code = 'IRODORI')
 -- ----------------------------------------------------------------------------
 -- 5 sections x 20 questions x 4 choices (1 correct) = 100 questions / 400 choices
 -- Content is Arabic, with fully pointed Arabic examples.
@@ -32,10 +32,20 @@ BEGIN;
 -- gen_random_uuid() is built in from PostgreSQL 13 on, so no extension is needed.
 INSERT INTO exam_types (id, name, code)
 SELECT gen_random_uuid(), v.name, v.code
-FROM (VALUES ('إيرودوري', 'IRODORI')) AS v(name, code)
+FROM (VALUES ('اللغة العربية', 'IRODORI')) AS v(name, code)
 WHERE NOT EXISTS (
   SELECT 1 FROM exam_types et WHERE et.code = v.code
 );
+
+-- The exam type was renamed. A database seeded before the rename still has
+-- the old name (the INSERT above is guarded on code, so it inserts nothing).
+-- This corrects it, matching only the known old names so it never overwrites a
+-- name an admin has since customised.
+UPDATE exam_types
+SET name = 'اللغة العربية'
+WHERE code = 'IRODORI'
+  AND name IN ('إيرودوري');
+
 
 -- ----------------------------------------------------------------------------
 -- 2) SECTIONS

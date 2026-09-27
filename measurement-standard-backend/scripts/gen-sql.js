@@ -40,6 +40,31 @@ function rows(cells) {
     .join(",\n");
 }
 
+/**
+ * Emit an idempotent rename for a previously published display name.
+ *
+ * The exam-type INSERT above is guarded on `code`, so on a database that was
+ * already seeded it inserts nothing and a renamed exam type would silently
+ * keep its old name forever. This UPDATE fixes that: it matches only rows that
+ * still hold a known previous name, so it is safe to re-run and never clobbers
+ * a name an admin has since customised.
+ */
+function renameBlock(examType) {
+  const previous = examType.renamedFrom ?? [];
+  if (!previous.length) return "";
+  const list = previous.map(lit).join(", ");
+  return `-- The exam type was renamed. A database seeded before the rename still has
+-- the old name (the INSERT above is guarded on code, so it inserts nothing).
+-- This corrects it, matching only the known old names so it never overwrites a
+-- name an admin has since customised.
+UPDATE exam_types
+SET name = ${lit(examType.name)}
+WHERE code = ${lit(examType.code)}
+  AND name IN (${list});
+
+`;
+}
+
 function header({ outFile, examType, sectionCount, perSection, questionCount, choiceCount, languageNote, latinAllow }) {
   const allowLine = latinAllow?.length
     ? `\n-- ALLOW-LATIN: ${latinAllow.join(", ")}\n`
@@ -83,6 +108,7 @@ WHERE NOT EXISTS (
   SELECT 1 FROM exam_types et WHERE et.code = v.code
 );
 
+${renameBlock(examType)}
 -- ----------------------------------------------------------------------------
 -- 2) SECTIONS
 -- ----------------------------------------------------------------------------

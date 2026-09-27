@@ -62,17 +62,8 @@ export const registerUser = createAsyncThunk(
       formData.append('email', userData.email);
       formData.append('password', userData.password);
 
-            // console.log('------------------------------------------');
-            // console.log('Registration formData:', formData);
-            // console.log('------------------------------------------');
-
-
       // لا نضع Content-Type يدوياً هنا (يضبطه الـ interceptor تلقائياً)
       const response = await apiClient.post('/auth/register', formData);
-
-            // console.log('------------------------------------------');
-            // console.log('Registration response:', response.data);
-            // console.log('------------------------------------------');
 
       await AsyncStorage.setItem('access_token', response.data.access_token);
       return response.data;

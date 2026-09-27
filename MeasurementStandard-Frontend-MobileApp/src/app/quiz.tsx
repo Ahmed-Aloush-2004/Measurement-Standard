@@ -7,7 +7,7 @@ import { Feather } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 
 import { AppDispatch, RootState } from "../store/store";
-import { fetchQuizQuestions, QuizChoice, QuizQuestion } from "../store/questionsSlice";
+import { fetchQuizQuestions, QuizQuestion } from "../store/questionsSlice";
 import { apiClient, getErrorMessage } from "../api/client";
 import ScreenHeader from "../components/ScreenHeader";
 import { LoadingView, ErrorState, EmptyState } from "../components/StateViews";
@@ -47,10 +47,10 @@ export default function QuizScreen() {
   );
 
   // Fallback check to unpack array even if Redux holds raw response object
-  const safeQuestions = useMemo(() => {
+  const safeQuestions = useMemo<QuizQuestion[]>(() => {
     if (Array.isArray(questions)) return questions;
-    if (questions && Array.isArray((questions as any).data)) {
-      return (questions as any).data;
+    if (questions && Array.isArray((questions as { data?: unknown }).data)) {
+      return (questions as { data: QuizQuestion[] }).data;
     }
     return [];
   }, [questions]);
